@@ -10,7 +10,8 @@ from .create_time_adjustment_item_dto import CreateTimeAdjustmentItemDTO
 @dataclass
 class CreateTimeAdjustmentRequestDTO:
     tenant_id: int
-    enrollment_id: int
+    employee_id: int
+    matricula: str
     request_date: date
     request_type: TimeAdjustmentType
     reason: str

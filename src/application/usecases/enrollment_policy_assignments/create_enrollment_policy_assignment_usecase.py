@@ -1,7 +1,6 @@
 from application.dtos import CreateEnrollmentPolicyAssignmentDTO
 from application.exceptions import BadRequestError, ConflictError
 from application.repositories import RepositoryManagerInterface
-from application.usecases.employee_enrollments import FindEmployeeEnrollmentByIdUseCase
 from application.usecases.work_policy_templates import FindWorkPolicyTemplateByIdUseCase
 from domain import EnrollmentPolicyAssignment
 
@@ -11,18 +10,14 @@ class CreateEnrollmentPolicyAssignmentUseCase:
         self.enrollment_policy_assignment_repository = (
             repository_manager.enrollment_policy_assignment_repository()
         )
-        self.find_enrollment_by_id = FindEmployeeEnrollmentByIdUseCase(repository_manager)
         self.find_template_by_id = FindWorkPolicyTemplateByIdUseCase(repository_manager)
 
     def execute(
         self, data: CreateEnrollmentPolicyAssignmentDTO
     ) -> EnrollmentPolicyAssignment:
-        enrollment = self.find_enrollment_by_id.execute(
-            enrollment_id=data.enrollment_id,
-            raise_if_is_none=True,
-        )
-        if enrollment.tenant_id != data.tenant_id:
-            raise BadRequestError("Enrollment does not belong to tenant.")
+        matricula = data.matricula.strip()
+        if len(matricula) == 0:
+            raise BadRequestError("matricula is required.")
 
         template = self.find_template_by_id.execute(
             template_id=data.template_id,
@@ -35,7 +30,8 @@ class CreateEnrollmentPolicyAssignmentUseCase:
             raise BadRequestError("effective_to must be greater than or equal to effective_from.")
 
         overlapping = self.enrollment_policy_assignment_repository.find_overlapping(
-            enrollment_id=data.enrollment_id,
+            employee_id=data.employee_id,
+            matricula=matricula,
             effective_from=data.effective_from,
             effective_to=data.effective_to,
         )
@@ -44,7 +40,8 @@ class CreateEnrollmentPolicyAssignmentUseCase:
 
         assignment = EnrollmentPolicyAssignment(
             tenant_id=data.tenant_id,
-            enrollment_id=data.enrollment_id,
+            employee_id=data.employee_id,
+            matricula=matricula,
             template_id=data.template_id,
             effective_from=data.effective_from,
             effective_to=data.effective_to,

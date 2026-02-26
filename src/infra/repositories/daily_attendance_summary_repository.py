@@ -13,7 +13,11 @@ class DailyAttendanceSummaryRepository(DailyAttendanceSummaryRepositoryInterface
         self.session = db_manager.session
 
     def upsert(self, summary: DailyAttendanceSummary) -> DailyAttendanceSummary:
-        existing = self.find_by_enrollment_and_date(summary.enrollment_id, summary.work_date)
+        existing = self.find_by_employee_and_matricula_and_date(
+            summary.employee_id,
+            summary.matricula,
+            summary.work_date,
+        )
 
         if existing is None:
             self.session.add(summary)
@@ -40,12 +44,13 @@ class DailyAttendanceSummaryRepository(DailyAttendanceSummaryRepositoryInterface
         )
         return self.__normalize_summary(summary) if summary is not None else None
 
-    def find_by_enrollment_and_date(
-        self, enrollment_id: int, work_date: date
+    def find_by_employee_and_matricula_and_date(
+        self, employee_id: int, matricula: str, work_date: date
     ) -> Optional[DailyAttendanceSummary]:
         summary = (
             self.session.query(DailyAttendanceSummary)
-            .filter(DailyAttendanceSummary.enrollment_id == enrollment_id)
+            .filter(DailyAttendanceSummary.employee_id == employee_id)
+            .filter(DailyAttendanceSummary.matricula == matricula)
             .filter(DailyAttendanceSummary.work_date == work_date)
             .first()
         )
@@ -56,7 +61,8 @@ class DailyAttendanceSummaryRepository(DailyAttendanceSummaryRepositoryInterface
         page: int,
         per_page: int,
         tenant_id: Optional[int] = None,
-        enrollment_id: Optional[int] = None,
+        employee_id: Optional[int] = None,
+        matricula: Optional[str] = None,
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
         status: Optional[DailyAttendanceStatus] = None,
@@ -66,8 +72,11 @@ class DailyAttendanceSummaryRepository(DailyAttendanceSummaryRepositoryInterface
         if tenant_id is not None:
             query = query.filter(DailyAttendanceSummary.tenant_id == tenant_id)
 
-        if enrollment_id is not None:
-            query = query.filter(DailyAttendanceSummary.enrollment_id == enrollment_id)
+        if employee_id is not None:
+            query = query.filter(DailyAttendanceSummary.employee_id == employee_id)
+
+        if matricula is not None:
+            query = query.filter(DailyAttendanceSummary.matricula == matricula)
 
         if start_date is not None:
             query = query.filter(DailyAttendanceSummary.work_date >= start_date)

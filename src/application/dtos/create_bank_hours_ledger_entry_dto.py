@@ -8,7 +8,8 @@ from domain.enums import BankHoursSource
 @dataclass
 class CreateBankHoursLedgerEntryDTO:
     tenant_id: int
-    enrollment_id: int
+    employee_id: int
+    matricula: str
     event_date: date
     minutes_delta: int
     source: BankHoursSource

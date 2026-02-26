@@ -8,7 +8,8 @@ from .enums import PunchTypeRequestEnum
 
 class CreateTimePunchRequest(BaseModel):
     tenantId: int
-    enrollmentId: int
+    employeeId: int
+    matricula: str
     punchedAt: datetime
     punchType: PunchTypeRequestEnum
     source: str = "web"

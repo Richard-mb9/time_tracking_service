@@ -9,7 +9,8 @@ from .time_adjustment_item_response import TimeAdjustmentItemResponse
 class TimeAdjustmentRequestResponse:
     id: int
     tenantId: int
-    enrollmentId: int
+    employeeId: int
+    matricula: str
     requestDate: date
     requestType: str
     status: str

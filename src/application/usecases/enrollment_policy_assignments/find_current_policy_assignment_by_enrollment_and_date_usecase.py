@@ -12,9 +12,10 @@ class FindCurrentPolicyAssignmentByEnrollmentAndDateUseCase:
         )
 
     def execute(
-        self, enrollment_id: int, reference_date: date
+        self, employee_id: int, matricula: str, reference_date: date
     ) -> Optional[EnrollmentPolicyAssignment]:
-        return self.enrollment_policy_assignment_repository.find_current_by_enrollment_and_date(
-            enrollment_id=enrollment_id,
+        return self.enrollment_policy_assignment_repository.find_current_by_employee_and_matricula_and_date(
+            employee_id=employee_id,
+            matricula=matricula,
             reference_date=reference_date,
         )

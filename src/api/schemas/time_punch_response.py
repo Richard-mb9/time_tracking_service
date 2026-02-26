@@ -7,7 +7,8 @@ from typing import Optional
 class TimePunchResponse:
     id: int
     tenantId: int
-    enrollmentId: int
+    employeeId: int
+    matricula: str
     punchedAt: datetime
     punchType: str
     source: str

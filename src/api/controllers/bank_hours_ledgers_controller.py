@@ -21,7 +21,6 @@ from application.usecases.bank_hours_ledgers import (
     GetBankHoursBalanceUseCase,
     ListBankHoursLedgerEntriesUseCase,
 )
-from application.usecases.employee_enrollments import FindEmployeeEnrollmentByIdUseCase
 from domain import BankHoursLedger
 from domain.enums import BankHoursSource
 from infra.database_manager import DatabaseManagerConnection
@@ -36,7 +35,8 @@ class BankHoursLedgersController:
         entry = CreateBankHoursLedgerEntryUseCase(self.repository_manager).execute(
             CreateBankHoursLedgerEntryDTO(
                 tenant_id=data.tenantId,
-                enrollment_id=data.enrollmentId,
+                employee_id=data.employeeId,
+                matricula=data.matricula,
                 event_date=data.eventDate,
                 minutes_delta=data.minutesDelta,
                 source=BankHoursSource(data.source.value),
@@ -59,7 +59,8 @@ class BankHoursLedgersController:
         requester_tenant_id: Optional[int],
         page: int,
         per_page: int,
-        enrollment_id: Optional[int],
+        employee_id: Optional[int],
+        matricula: Optional[str],
         start_date: Optional[date],
         end_date: Optional[date],
         source: Optional[BankHoursSourceRequestEnum],
@@ -70,7 +71,8 @@ class BankHoursLedgersController:
                 page=page,
                 per_page=per_page,
                 tenant_id=requester_tenant_id,
-                enrollment_id=enrollment_id,
+                employee_id=employee_id,
+                matricula=matricula,
                 start_date=start_date,
                 end_date=end_date,
                 source=mapped_source,
@@ -83,23 +85,18 @@ class BankHoursLedgersController:
         )
 
     def get_balance(
-        self, enrollment_id: int, until_date: date, tenant_id: int
+        self, employee_id: int, matricula: str, until_date: date
     ) -> BankHoursBalanceResponse:
-        enrollment = FindEmployeeEnrollmentByIdUseCase(self.repository_manager).execute(
-            enrollment_id=enrollment_id,
-            raise_if_is_none=True,
-        )
-        if enrollment.tenant_id != tenant_id:
-            raise BadRequestError("Enrollment does not belong to tenant.")
-
         balance = GetBankHoursBalanceUseCase(self.repository_manager).execute(
             GetBankHoursBalanceDTO(
-                enrollment_id=enrollment_id,
+                employee_id=employee_id,
+                matricula=matricula,
                 until_date=until_date,
             )
         )
         return BankHoursBalanceResponse(
-            enrollmentId=enrollment_id,
+            employeeId=employee_id,
+            matricula=matricula,
             untilDate=until_date,
             balanceMinutes=balance,
         )
@@ -108,7 +105,8 @@ class BankHoursLedgersController:
         return BankHoursLedgerResponse(
             id=item.id,
             tenantId=item.tenant_id,
-            enrollmentId=item.enrollment_id,
+            employeeId=item.employee_id,
+            matricula=item.matricula,
             eventDate=item.event_date,
             minutesDelta=item.minutes_delta,
             source=item.source.value,

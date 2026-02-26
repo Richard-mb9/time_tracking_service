@@ -26,7 +26,8 @@ class DeleteTimePunchUseCase:
         self.recalculate_daily_summary.execute(
             RecalculateDailyAttendanceSummaryDTO(
                 tenant_id=tenant_id,
-                enrollment_id=punch.enrollment_id,
+                employee_id=punch.employee_id,
+                matricula=punch.matricula,
                 work_date=punch.punched_at.date(),
             )
         )

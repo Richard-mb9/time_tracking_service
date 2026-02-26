@@ -5,9 +5,6 @@ from application.repositories.bank_hours_ledger_repository_interface import (
 from application.repositories.daily_attendance_summary_repository_interface import (
     DailyAttendanceSummaryRepositoryInterface,
 )
-from application.repositories.employee_enrollment_repository_interface import (
-    EmployeeEnrollmentRepositoryInterface,
-)
 from application.repositories.enrollment_policy_assignment_repository_interface import (
     EnrollmentPolicyAssignmentRepositoryInterface,
 )
@@ -27,7 +24,6 @@ from infra.database_manager import DatabaseManagerConnection
 
 from .bank_hours_ledger_repository import BankHoursLedgerRepository
 from .daily_attendance_summary_repository import DailyAttendanceSummaryRepository
-from .employee_enrollment_repository import EmployeeEnrollmentRepository
 from .enrollment_policy_assignment_repository import EnrollmentPolicyAssignmentRepository
 from .time_adjustment_item_repository import TimeAdjustmentItemRepository
 from .time_adjustment_request_repository import TimeAdjustmentRequestRepository
@@ -38,9 +34,6 @@ from .work_policy_template_repository import WorkPolicyTemplateRepository
 class RepositoryManager(RepositoryManagerInterface):
     def __init__(self, db_manager: DatabaseManagerConnection):
         self.db_manager = db_manager
-
-    def employee_enrollment_repository(self) -> EmployeeEnrollmentRepositoryInterface:
-        return EmployeeEnrollmentRepository(self.db_manager)
 
     def work_policy_template_repository(self) -> WorkPolicyTemplateRepositoryInterface:
         return WorkPolicyTemplateRepository(self.db_manager)

@@ -64,7 +64,7 @@ async def list_work_policy_templates(
     db_manager: DBManager,
     current_user: CurrentUser,
     page: int = Query(default=0, ge=0),
-    perPage: int = Query(default=20, ge=1, le=100),
+    perPage: int = Query(default=20, ge=1, le=1000),
     name: Optional[str] = None,
     tenantId: Optional[int] = None,
 ):

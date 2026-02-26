@@ -57,7 +57,8 @@ class UpdateEnrollmentPolicyAssignmentUseCase:
         self.__validate_period(candidate_effective_from, candidate_effective_to)
 
         overlapping = self.enrollment_policy_assignment_repository.find_overlapping(
-            enrollment_id=assignment.enrollment_id,
+            employee_id=assignment.employee_id,
+            matricula=assignment.matricula,
             effective_from=candidate_effective_from,
             effective_to=candidate_effective_to,
             exclude_assignment_id=assignment.id,

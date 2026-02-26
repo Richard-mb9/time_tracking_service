@@ -8,6 +8,7 @@ class GetBankHoursBalanceUseCase:
 
     def execute(self, data: GetBankHoursBalanceDTO) -> int:
         return self.bank_hours_ledger_repository.get_balance_until(
-            enrollment_id=data.enrollment_id,
+            employee_id=data.employee_id,
+            matricula=data.matricula,
             until_date=data.until_date,
         )

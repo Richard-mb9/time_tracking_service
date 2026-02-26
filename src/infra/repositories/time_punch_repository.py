@@ -44,32 +44,41 @@ class TimePunchRepository(TimePunchRepositoryInterface):
         return self.__normalize_punch(punch) if punch is not None else None
 
     def find_duplicate(
-        self, enrollment_id: int, punched_at: datetime, punch_type: PunchType
+        self,
+        employee_id: int,
+        matricula: str,
+        punched_at: datetime,
+        punch_type: PunchType,
     ) -> Optional[TimePunch]:
         punch = (
             self.session.query(TimePunch)
-            .filter(TimePunch.enrollment_id == enrollment_id)
+            .filter(TimePunch.employee_id == employee_id)
+            .filter(TimePunch.matricula == matricula)
             .filter(TimePunch.punched_at == punched_at)
             .filter(TimePunch.punch_type == punch_type)
             .first()
         )
         return self.__normalize_punch(punch) if punch is not None else None
 
-    def find_last_by_enrollment(self, enrollment_id: int) -> Optional[TimePunch]:
+    def find_last_by_employee_and_matricula(
+        self, employee_id: int, matricula: str
+    ) -> Optional[TimePunch]:
         punch = (
             self.session.query(TimePunch)
-            .filter(TimePunch.enrollment_id == enrollment_id)
+            .filter(TimePunch.employee_id == employee_id)
+            .filter(TimePunch.matricula == matricula)
             .order_by(TimePunch.punched_at.desc())
             .first()
         )
         return self.__normalize_punch(punch) if punch is not None else None
 
-    def find_by_enrollment_and_period(
-        self, enrollment_id: int, start_at: datetime, end_at: datetime
+    def find_by_employee_and_matricula_and_period(
+        self, employee_id: int, matricula: str, start_at: datetime, end_at: datetime
     ) -> List[TimePunch]:
         data = (
             self.session.query(TimePunch)
-            .filter(TimePunch.enrollment_id == enrollment_id)
+            .filter(TimePunch.employee_id == employee_id)
+            .filter(TimePunch.matricula == matricula)
             .filter(TimePunch.punched_at >= start_at)
             .filter(TimePunch.punched_at <= end_at)
             .order_by(TimePunch.punched_at.asc())
@@ -77,12 +86,31 @@ class TimePunchRepository(TimePunchRepositoryInterface):
         )
         return [self.__normalize_punch(punch) for punch in data]
 
-    def find_by_enrollment_and_date(
-        self, enrollment_id: int, work_date: date
+    def find_by_employee_and_matricula_and_date(
+        self, employee_id: int, matricula: str, work_date: date
     ) -> List[TimePunch]:
         data = (
             self.session.query(TimePunch)
-            .filter(TimePunch.enrollment_id == enrollment_id)
+            .filter(TimePunch.employee_id == employee_id)
+            .filter(TimePunch.matricula == matricula)
+            .filter(func.date(TimePunch.punched_at) == work_date)
+            .order_by(TimePunch.punched_at.asc())
+            .all()
+        )
+        return [self.__normalize_punch(punch) for punch in data]
+
+    def find_other_matriculas_with_punch_on_date(
+        self,
+        tenant_id: int,
+        employee_id: int,
+        work_date: date,
+        matricula_to_exclude: str,
+    ) -> List[TimePunch]:
+        data = (
+            self.session.query(TimePunch)
+            .filter(TimePunch.tenant_id == tenant_id)
+            .filter(TimePunch.employee_id == employee_id)
+            .filter(TimePunch.matricula != matricula_to_exclude)
             .filter(func.date(TimePunch.punched_at) == work_date)
             .order_by(TimePunch.punched_at.asc())
             .all()
@@ -94,7 +122,8 @@ class TimePunchRepository(TimePunchRepositoryInterface):
         page: int,
         per_page: int,
         tenant_id: Optional[int] = None,
-        enrollment_id: Optional[int] = None,
+        employee_id: Optional[int] = None,
+        matricula: Optional[str] = None,
         start_at: Optional[datetime] = None,
         end_at: Optional[datetime] = None,
         punch_type: Optional[PunchType] = None,
@@ -104,8 +133,11 @@ class TimePunchRepository(TimePunchRepositoryInterface):
         if tenant_id is not None:
             query = query.filter(TimePunch.tenant_id == tenant_id)
 
-        if enrollment_id is not None:
-            query = query.filter(TimePunch.enrollment_id == enrollment_id)
+        if employee_id is not None:
+            query = query.filter(TimePunch.employee_id == employee_id)
+
+        if matricula is not None:
+            query = query.filter(TimePunch.matricula == matricula)
 
         if start_at is not None:
             query = query.filter(TimePunch.punched_at >= start_at)

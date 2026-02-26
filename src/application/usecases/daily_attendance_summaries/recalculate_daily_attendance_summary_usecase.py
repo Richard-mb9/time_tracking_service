@@ -2,9 +2,7 @@ from datetime import date, datetime
 from typing import List, Optional, Tuple
 
 from application.dtos import RecalculateDailyAttendanceSummaryDTO
-from application.exceptions import BadRequestError
 from application.repositories import RepositoryManagerInterface
-from application.usecases.employee_enrollments import FindEmployeeEnrollmentByIdUseCase
 from application.usecases.enrollment_policy_assignments import (
     FindCurrentPolicyAssignmentByEnrollmentAndDateUseCase,
 )
@@ -27,26 +25,20 @@ class RecalculateDailyAttendanceSummaryUseCase:
             repository_manager.time_adjustment_request_repository()
         )
         self.bank_hours_ledger_repository = repository_manager.bank_hours_ledger_repository()
-        self.find_enrollment_by_id = FindEmployeeEnrollmentByIdUseCase(repository_manager)
         self.find_assignment_by_date = (
             FindCurrentPolicyAssignmentByEnrollmentAndDateUseCase(repository_manager)
         )
 
     def execute(self, data: RecalculateDailyAttendanceSummaryDTO) -> DailyAttendanceSummary:
-        enrollment = self.find_enrollment_by_id.execute(
-            enrollment_id=data.enrollment_id,
-            raise_if_is_none=True,
-        )
-        if enrollment.tenant_id != data.tenant_id:
-            raise BadRequestError("Enrollment does not belong to tenant.")
-
         assignment = self.find_assignment_by_date.execute(
-            enrollment_id=data.enrollment_id,
+            employee_id=data.employee_id,
+            matricula=data.matricula,
             reference_date=data.work_date,
         )
 
-        punches = self.time_punch_repository.find_by_enrollment_and_date(
-            enrollment_id=data.enrollment_id,
+        punches = self.time_punch_repository.find_by_employee_and_matricula_and_date(
+            employee_id=data.employee_id,
+            matricula=data.matricula,
             work_date=data.work_date,
         )
         worked_minutes, break_minutes, is_complete = self.__calculate_minutes(punches)
@@ -56,7 +48,8 @@ class RecalculateDailyAttendanceSummaryUseCase:
         )
         has_pending_adjustment = self.__has_pending_adjustment(
             tenant_id=data.tenant_id,
-            enrollment_id=data.enrollment_id,
+            employee_id=data.employee_id,
+            matricula=data.matricula,
             work_date=data.work_date,
         )
         status = self.__resolve_status(
@@ -76,7 +69,8 @@ class RecalculateDailyAttendanceSummaryUseCase:
 
         summary = DailyAttendanceSummary(
             tenant_id=data.tenant_id,
-            enrollment_id=data.enrollment_id,
+            employee_id=data.employee_id,
+            matricula=data.matricula,
             work_date=data.work_date,
             expected_minutes=expected_minutes,
             worked_minutes=worked_minutes,
@@ -89,7 +83,8 @@ class RecalculateDailyAttendanceSummaryUseCase:
         persisted_summary = self.daily_attendance_summary_repository.upsert(summary)
 
         self.bank_hours_ledger_repository.delete_auto_generated_for_day(
-            enrollment_id=data.enrollment_id,
+            employee_id=data.employee_id,
+            matricula=data.matricula,
             event_date=data.work_date,
             source=BankHoursSource.DAILY_APURATION,
         )
@@ -99,7 +94,8 @@ class RecalculateDailyAttendanceSummaryUseCase:
             self.bank_hours_ledger_repository.create(
                 BankHoursLedger(
                     tenant_id=data.tenant_id,
-                    enrollment_id=data.enrollment_id,
+                    employee_id=data.employee_id,
+                    matricula=data.matricula,
                     event_date=data.work_date,
                     minutes_delta=daily_delta,
                     source=BankHoursSource.DAILY_APURATION,
@@ -110,13 +106,14 @@ class RecalculateDailyAttendanceSummaryUseCase:
         return persisted_summary
 
     def __has_pending_adjustment(
-        self, tenant_id: int, enrollment_id: int, work_date: date
+        self, tenant_id: int, employee_id: int, matricula: str, work_date: date
     ) -> bool:
         result = self.time_adjustment_request_repository.find_all(
             page=0,
             per_page=1,
             tenant_id=tenant_id,
-            enrollment_id=enrollment_id,
+            employee_id=employee_id,
+            matricula=matricula,
             status=TimeAdjustmentStatus.PENDING,
             start_date=work_date,
             end_date=work_date,

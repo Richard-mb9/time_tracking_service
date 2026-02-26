@@ -17,8 +17,8 @@ class DailyAttendanceSummaryRepositoryInterface(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def find_by_enrollment_and_date(
-        self, enrollment_id: int, work_date: date
+    def find_by_employee_and_matricula_and_date(
+        self, employee_id: int, matricula: str, work_date: date
     ) -> Optional[DailyAttendanceSummary]:
         raise NotImplementedError
 
@@ -28,7 +28,8 @@ class DailyAttendanceSummaryRepositoryInterface(ABC):
         page: int,
         per_page: int,
         tenant_id: Optional[int] = None,
-        enrollment_id: Optional[int] = None,
+        employee_id: Optional[int] = None,
+        matricula: Optional[str] = None,
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
         status: Optional[DailyAttendanceStatus] = None,

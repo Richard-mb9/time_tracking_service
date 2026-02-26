@@ -29,7 +29,8 @@ Request body:
 | Campo | Tipo | Obrigatorio | Descricao |
 |---|---|---|---|
 | `tenantId` | `int` | Sim | Tenant do lancamento |
-| `enrollmentId` | `int` | Sim | Matricula alvo |
+| `employeeId` | `int` | Sim | ID do funcionario |
+| `matricula` | `string` | Sim | Matricula do funcionario |
 | `eventDate` | `date` | Sim | Data do evento |
 | `minutesDelta` | `int` | Sim | Minutos de credito/debito |
 | `source` | `string` enum | Sim | `DAILY_APURATION`, `MANUAL_ADJUST`, `ADJUSTMENT_REQUEST` |
@@ -39,7 +40,8 @@ Exemplo request:
 ```json
 {
   "tenantId": 10,
-  "enrollmentId": 123,
+  "employeeId": 501,
+  "matricula": "MAT-0001",
   "eventDate": "2026-02-25",
   "minutesDelta": 30,
   "source": "MANUAL_ADJUST",
@@ -57,7 +59,7 @@ Response:
 ```
 
 Erros comuns:
-- `400`: `Enrollment does not belong to tenant.`
+- `400`: `matricula is required.`
 - `400`: `minutes_delta cannot be zero.`
 
 ---
@@ -80,7 +82,8 @@ Response:
 {
   "id": 3001,
   "tenantId": 10,
-  "enrollmentId": 123,
+  "employeeId": 501,
+  "matricula": "MAT-0001",
   "eventDate": "2026-02-25",
   "minutesDelta": 30,
   "source": "MANUAL_ADJUST",
@@ -97,7 +100,7 @@ Erros comuns:
 ## GET /bank-hours-ledgers
 
 Descricao:
-- Lista lancamentos por tenant/matricula/periodo/fonte.
+- Lista lancamentos por tenant/funcionario/matricula/periodo/fonte.
 
 Query params:
 
@@ -105,7 +108,8 @@ Query params:
 |---|---|---|---|---|
 | `page` | `int` | Nao | `0` | Pagina |
 | `perPage` | `int` | Nao | `20` | Itens por pagina |
-| `enrollmentId` | `int` | Nao | - | Filtro por matricula |
+| `employeeId` | `int` | Nao | - | Filtro por funcionario |
+| `matricula` | `string` | Nao | - | Filtro por matricula |
 | `startDate` | `date` | Nao | - | Inicio do periodo |
 | `endDate` | `date` | Nao | - | Fim do periodo |
 | `source` | `string` enum | Nao | - | Filtra por origem |
@@ -124,7 +128,8 @@ Response:
     {
       "id": 3001,
       "tenantId": 10,
-      "enrollmentId": 123,
+      "employeeId": 501,
+      "matricula": "MAT-0001",
       "eventDate": "2026-02-25",
       "minutesDelta": 30,
       "source": "MANUAL_ADJUST",
@@ -138,21 +143,17 @@ Response:
 
 ---
 
-## GET /bank-hours-ledgers/balance/{enrollmentId}
+## GET /bank-hours-ledgers/balance
 
 Descricao:
 - Retorna saldo acumulado de banco de horas ate uma data.
-
-Path params:
-
-| Campo | Tipo | Obrigatorio | Descricao |
-|---|---|---|---|
-| `enrollmentId` | `int` | Sim | Matricula alvo |
 
 Query params:
 
 | Campo | Tipo | Obrigatorio | Descricao |
 |---|---|---|---|
+| `employeeId` | `int` | Sim | ID do funcionario |
+| `matricula` | `string` | Sim | Matricula do funcionario |
 | `untilDate` | `date` | Sim | Data limite para consolidacao do saldo |
 
 Response:
@@ -160,7 +161,8 @@ Response:
 
 ```json
 {
-  "enrollmentId": 123,
+  "employeeId": 501,
+  "matricula": "MAT-0001",
   "untilDate": "2026-02-25",
   "balanceMinutes": 120
 }

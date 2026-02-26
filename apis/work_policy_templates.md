@@ -102,7 +102,7 @@ Query params:
 | Campo | Tipo | Obrigatorio | Default | Descricao |
 |---|---|---|---|---|
 | `page` | `int` | Nao | `0` | Pagina (base 0) |
-| `perPage` | `int` | Nao | `20` | Itens por pagina (`1..100`) |
+| `perPage` | `int` | Nao | `20` | Itens por pagina (`1..1000`) |
 | `name` | `string` | Nao | - | Filtro por nome (`ILIKE`) |
 | `tenantId` | `int` | Nao | - | Tenant opcional para usuario de tenant de sistema |
 

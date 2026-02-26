@@ -6,7 +6,8 @@ from datetime import date
 class DailyAttendanceSummaryResponse:
     id: int
     tenantId: int
-    enrollmentId: int
+    employeeId: int
+    matricula: str
     workDate: date
     expectedMinutes: int
     workedMinutes: int

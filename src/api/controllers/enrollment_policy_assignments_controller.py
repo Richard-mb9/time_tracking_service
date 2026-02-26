@@ -34,7 +34,8 @@ class EnrollmentPolicyAssignmentsController:
         assignment = CreateEnrollmentPolicyAssignmentUseCase(self.repository_manager).execute(
             CreateEnrollmentPolicyAssignmentDTO(
                 tenant_id=data.tenantId,
-                enrollment_id=data.enrollmentId,
+                employee_id=data.employeeId,
+                matricula=data.matricula,
                 template_id=data.templateId,
                 effective_from=data.effectiveFrom,
                 effective_to=data.effectiveTo,
@@ -57,7 +58,8 @@ class EnrollmentPolicyAssignmentsController:
         requester_tenant_id: Optional[int],
         page: int,
         per_page: int,
-        enrollment_id: Optional[int],
+        employee_id: Optional[int],
+        matricula: Optional[str],
         template_id: Optional[int],
         target_date: Optional[date],
     ) -> PaginatedResponse[EnrollmentPolicyAssignmentResponse]:
@@ -66,7 +68,8 @@ class EnrollmentPolicyAssignmentsController:
                 page=page,
                 per_page=per_page,
                 tenant_id=requester_tenant_id,
-                enrollment_id=enrollment_id,
+                employee_id=employee_id,
+                matricula=matricula,
                 template_id=template_id,
                 target_date=target_date,
             )
@@ -106,7 +109,8 @@ class EnrollmentPolicyAssignmentsController:
         return EnrollmentPolicyAssignmentResponse(
             id=item.id,
             tenantId=item.tenant_id,
-            enrollmentId=item.enrollment_id,
+            employeeId=item.employee_id,
+            matricula=item.matricula,
             templateId=item.template_id,
             effectiveFrom=item.effective_from,
             effectiveTo=item.effective_to,

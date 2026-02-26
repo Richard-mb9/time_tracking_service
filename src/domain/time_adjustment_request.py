@@ -4,14 +4,14 @@ from typing import List, Optional, TYPE_CHECKING
 from .enums import TimeAdjustmentStatus, TimeAdjustmentType
 
 if TYPE_CHECKING:  # pragma: no cover
-    from .employee_enrollment import EmployeeEnrollment
     from .time_adjustment_item import TimeAdjustmentItem
 
 
 class TimeAdjustmentRequest:
     id: int
     tenant_id: int
-    enrollment_id: int
+    employee_id: int
+    matricula: str
     request_date: date
     request_type: TimeAdjustmentType
     status: TimeAdjustmentStatus
@@ -21,13 +21,13 @@ class TimeAdjustmentRequest:
     decided_by_user_id: Optional[int]
     decision_reason: Optional[str]
 
-    enrollment: "EmployeeEnrollment"
     items: List["TimeAdjustmentItem"]
 
     def __init__(
         self,
         tenant_id: int,
-        enrollment_id: int,
+        employee_id: int,
+        matricula: str,
         request_date: date,
         request_type: TimeAdjustmentType,
         reason: str,
@@ -38,7 +38,8 @@ class TimeAdjustmentRequest:
         decision_reason: Optional[str] = None,
     ):
         self.tenant_id = tenant_id
-        self.enrollment_id = enrollment_id
+        self.employee_id = employee_id
+        self.matricula = matricula
         self.request_date = request_date
         self.request_type = request_type
         self.status = status

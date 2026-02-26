@@ -12,7 +12,7 @@ Observacoes de tenant:
 - Endpoint por ID usa tenant do usuario autenticado.
 
 Regras gerais:
-- Resumo diario e materializado por matricula e data.
+- Resumo diario e materializado por `employeeId` + `matricula` + data.
 - Recalculo considera:
   - batidas do dia,
   - template vigente na data,
@@ -25,21 +25,23 @@ Regras gerais:
 ## POST /daily-attendance-summaries/recalculate
 
 Descricao:
-- Reprocessa o resumo diario para uma matricula e data especifica.
+- Reprocessa o resumo diario para um funcionario/matricula e data especifica.
 
 Request body:
 
 | Campo | Tipo | Obrigatorio | Descricao |
 |---|---|---|---|
 | `tenantId` | `int` | Sim | Tenant da operacao |
-| `enrollmentId` | `int` | Sim | Matricula alvo |
+| `employeeId` | `int` | Sim | ID do funcionario |
+| `matricula` | `string` | Sim | Matricula do funcionario |
 | `workDate` | `date` | Sim | Data de apuracao |
 
 Exemplo request:
 ```json
 {
   "tenantId": 10,
-  "enrollmentId": 123,
+  "employeeId": 501,
+  "matricula": "MAT-0001",
   "workDate": "2026-02-25"
 }
 ```
@@ -51,7 +53,8 @@ Response:
 {
   "id": 700,
   "tenantId": 10,
-  "enrollmentId": 123,
+  "employeeId": 501,
+  "matricula": "MAT-0001",
   "workDate": "2026-02-25",
   "expectedMinutes": 480,
   "workedMinutes": 485,
@@ -61,10 +64,6 @@ Response:
   "status": "OK"
 }
 ```
-
-Erros comuns:
-- `400`: `Enrollment does not belong to tenant.`
-- `404`: `Employee enrollment not found.`
 
 ---
 
@@ -86,7 +85,8 @@ Response:
 {
   "id": 700,
   "tenantId": 10,
-  "enrollmentId": 123,
+  "employeeId": 501,
+  "matricula": "MAT-0001",
   "workDate": "2026-02-25",
   "expectedMinutes": 480,
   "workedMinutes": 485,
@@ -106,7 +106,7 @@ Erros comuns:
 ## GET /daily-attendance-summaries
 
 Descricao:
-- Lista resumos diarios por periodo, matricula e status.
+- Lista resumos diarios por periodo, funcionario/matricula e status.
 
 Query params:
 
@@ -114,7 +114,8 @@ Query params:
 |---|---|---|---|---|
 | `page` | `int` | Nao | `0` | Pagina |
 | `perPage` | `int` | Nao | `20` | Itens por pagina |
-| `enrollmentId` | `int` | Nao | - | Filtro por matricula |
+| `employeeId` | `int` | Nao | - | Filtro por funcionario |
+| `matricula` | `string` | Nao | - | Filtro por matricula |
 | `startDate` | `date` | Nao | - | Inicio por data de trabalho |
 | `endDate` | `date` | Nao | - | Fim por data de trabalho |
 | `status` | `string` enum | Nao | - | `OK`, `INCOMPLETE`, `PENDING_ADJUSTMENT`, `NO_POLICY` |
@@ -133,7 +134,8 @@ Response:
     {
       "id": 700,
       "tenantId": 10,
-      "enrollmentId": 123,
+      "employeeId": 501,
+      "matricula": "MAT-0001",
       "workDate": "2026-02-25",
       "expectedMinutes": 480,
       "workedMinutes": 485,

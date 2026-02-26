@@ -1,7 +1,6 @@
 # pyright: reportUnusedImport=false
 from .bank_hours_ledger import BankHoursLedger
 from .daily_attendance_summary import DailyAttendanceSummary
-from .employee_enrollment import EmployeeEnrollment
 from .enrollment_policy_assignment import EnrollmentPolicyAssignment
 from .enums import (
     BankHoursSource,

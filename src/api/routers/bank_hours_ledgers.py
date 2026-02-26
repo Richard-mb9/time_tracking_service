@@ -65,8 +65,9 @@ async def list_bank_hours_ledger_entries(
     db_manager: DBManager,
     current_user: CurrentUser,
     page: int = Query(default=0, ge=0),
-    perPage: int = Query(default=20, ge=1, le=100),
-    enrollmentId: Optional[int] = None,
+    perPage: int = Query(default=20, ge=1, le=1000),
+    employeeId: Optional[int] = None,
+    matricula: Optional[str] = None,
     startDate: Optional[date] = None,
     endDate: Optional[date] = None,
     source: Optional[BankHoursSourceRequestEnum] = None,
@@ -77,7 +78,8 @@ async def list_bank_hours_ledger_entries(
         requester_tenant_id=tenant_id,
         page=page,
         per_page=perPage,
-        enrollment_id=enrollmentId,
+        employee_id=employeeId,
+        matricula=matricula,
         start_date=startDate,
         end_date=endDate,
         source=source,
@@ -85,20 +87,21 @@ async def list_bank_hours_ledger_entries(
 
 
 @router.get(
-    "/balance/{enrollmentId}",
+    "/balance",
     status_code=HTTPStatus.OK,
     response_model=BankHoursBalanceResponse,
     dependencies=[require_role("bank_hours_ledgers:read")],
 )
 async def get_bank_hours_balance(
-    enrollmentId: int,
+    employeeId: int,
+    matricula: str,
     untilDate: date,
     db_manager: DBManager,
     current_user: CurrentUser,
 ):
     _ = current_user
     return BankHoursLedgersController(db_manager).get_balance(
-        enrollment_id=enrollmentId,
+        employee_id=employeeId,
+        matricula=matricula,
         until_date=untilDate,
-        tenant_id=current_user.tenant_id,
     )

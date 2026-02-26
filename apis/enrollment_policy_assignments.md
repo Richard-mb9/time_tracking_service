@@ -14,25 +14,26 @@ Observacoes de tenant:
 - Endpoints por ID usam tenant do usuario autenticado.
 
 Regras gerais:
-- Vincula template de jornada a uma matricula com vigencia.
+- Vincula template de jornada a um `employeeId` + `matricula` com vigencia.
 - `effectiveFrom` e obrigatorio.
 - `effectiveTo` opcional, mas quando informado deve ser maior ou igual a `effectiveFrom`.
-- Nao e permitido sobrepor periodos para a mesma matricula.
-- Matricula e template devem pertencer ao mesmo tenant da operacao.
+- Nao e permitido sobrepor periodos para o mesmo `employeeId` + `matricula`.
+- Template deve pertencer ao tenant da operacao.
 
 ---
 
 ## POST /enrollment-policy-assignments
 
 Descricao:
-- Cria uma atribuicao de template para matricula.
+- Cria uma atribuicao de template para funcionario/matricula.
 
 Request body:
 
 | Campo | Tipo | Obrigatorio | Descricao |
 |---|---|---|---|
 | `tenantId` | `int` | Sim | Tenant da atribuicao |
-| `enrollmentId` | `int` | Sim | ID da matricula |
+| `employeeId` | `int` | Sim | ID do funcionario |
+| `matricula` | `string` | Sim | Matricula do funcionario |
 | `templateId` | `int` | Sim | ID do template |
 | `effectiveFrom` | `date` | Sim | Inicio da vigencia |
 | `effectiveTo` | `date` | Nao | Fim da vigencia |
@@ -47,7 +48,7 @@ Response:
 ```
 
 Erros comuns:
-- `400`: `Enrollment does not belong to tenant.`
+- `400`: `matricula is required.`
 - `400`: `Template does not belong to tenant.`
 - `400`: `effective_to must be greater than or equal to effective_from.`
 - `409`: `Assignment period overlaps with an existing assignment.`
@@ -72,7 +73,8 @@ Response:
 {
   "id": 200,
   "tenantId": 10,
-  "enrollmentId": 123,
+  "employeeId": 501,
+  "matricula": "MAT-0001",
   "templateId": 80,
   "effectiveFrom": "2026-01-01",
   "effectiveTo": null
@@ -88,7 +90,7 @@ Erros comuns:
 ## GET /enrollment-policy-assignments
 
 Descricao:
-- Lista atribuicoes com filtros por matricula, template e data-alvo.
+- Lista atribuicoes com filtros por funcionario/matricula, template e data-alvo.
 
 Query params:
 
@@ -96,7 +98,8 @@ Query params:
 |---|---|---|---|---|
 | `page` | `int` | Nao | `0` | Pagina |
 | `perPage` | `int` | Nao | `20` | Itens por pagina |
-| `enrollmentId` | `int` | Nao | - | Filtro por matricula |
+| `employeeId` | `int` | Nao | - | Filtro por funcionario |
+| `matricula` | `string` | Nao | - | Filtro por matricula |
 | `templateId` | `int` | Nao | - | Filtro por template |
 | `targetDate` | `date` | Nao | - | Filtra atribuicoes vigentes na data |
 | `tenantId` | `int` | Nao | - | Tenant opcional para usuario tenant sistema |
@@ -114,7 +117,8 @@ Response:
     {
       "id": 200,
       "tenantId": 10,
-      "enrollmentId": 123,
+      "employeeId": 501,
+      "matricula": "MAT-0001",
       "templateId": 80,
       "effectiveFrom": "2026-01-01",
       "effectiveTo": null
@@ -153,7 +157,8 @@ Response:
 {
   "id": 200,
   "tenantId": 10,
-  "enrollmentId": 123,
+  "employeeId": 501,
+  "matricula": "MAT-0001",
   "templateId": 80,
   "effectiveFrom": "2026-01-01",
   "effectiveTo": null

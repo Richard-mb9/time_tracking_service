@@ -5,5 +5,6 @@ from pydantic import BaseModel
 
 class RecalculateDailyAttendanceSummaryRequest(BaseModel):
     tenantId: int
-    enrollmentId: int
+    employeeId: int
+    matricula: str
     workDate: date

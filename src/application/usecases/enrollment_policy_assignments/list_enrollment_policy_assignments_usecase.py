@@ -16,7 +16,8 @@ class ListEnrollmentPolicyAssignmentsUseCase:
             page=data.page,
             per_page=data.per_page,
             tenant_id=data.tenant_id,
-            enrollment_id=data.enrollment_id,
+            employee_id=data.employee_id,
+            matricula=data.matricula,
             template_id=data.template_id,
             target_date=data.target_date,
         )

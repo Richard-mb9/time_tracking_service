@@ -3,7 +3,6 @@ from .bank_hours_ledger_repository_interface import BankHoursLedgerRepositoryInt
 from .daily_attendance_summary_repository_interface import (
     DailyAttendanceSummaryRepositoryInterface,
 )
-from .employee_enrollment_repository_interface import EmployeeEnrollmentRepositoryInterface
 from .enrollment_policy_assignment_repository_interface import (
     EnrollmentPolicyAssignmentRepositoryInterface,
 )

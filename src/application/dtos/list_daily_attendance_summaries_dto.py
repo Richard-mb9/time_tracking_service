@@ -10,7 +10,8 @@ class ListDailyAttendanceSummariesDTO:
     page: int
     per_page: int
     tenant_id: Optional[int] = None
-    enrollment_id: Optional[int] = None
+    employee_id: Optional[int] = None
+    matricula: Optional[str] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
     status: Optional[DailyAttendanceStatus] = None

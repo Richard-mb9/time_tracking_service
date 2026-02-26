@@ -3,7 +3,6 @@ from typing import List, Set, Tuple
 from application.dtos import CreateTimeAdjustmentRequestDTO
 from application.exceptions import BadRequestError
 from application.repositories import RepositoryManagerInterface
-from application.usecases.employee_enrollments import FindEmployeeEnrollmentByIdUseCase
 from application.usecases.time_punches import FindTimePunchByIdUseCase
 from domain import TimeAdjustmentItem, TimeAdjustmentRequest
 
@@ -16,25 +15,12 @@ class CreateTimeAdjustmentRequestUseCase:
         self.time_adjustment_item_repository = (
             repository_manager.time_adjustment_item_repository()
         )
-        self.find_enrollment_by_id = FindEmployeeEnrollmentByIdUseCase(repository_manager)
         self.find_time_punch_by_id = FindTimePunchByIdUseCase(repository_manager)
 
     def execute(self, data: CreateTimeAdjustmentRequestDTO) -> TimeAdjustmentRequest:
-        enrollment = self.find_enrollment_by_id.execute(
-            enrollment_id=data.enrollment_id,
-            raise_if_is_none=True,
-        )
-        if enrollment.tenant_id != data.tenant_id:
-            raise BadRequestError("Enrollment does not belong to tenant.")
-
-        if not enrollment.is_active:
-            raise BadRequestError("Inactive enrollment cannot receive adjustments.")
-
-        if data.request_date < enrollment.active_from:
-            raise BadRequestError("request_date is before enrollment active_from.")
-
-        if enrollment.active_to is not None and data.request_date > enrollment.active_to:
-            raise BadRequestError("request_date is after enrollment active_to.")
+        matricula = data.matricula.strip()
+        if len(matricula) == 0:
+            raise BadRequestError("matricula is required.")
 
         if len(data.reason.strip()) == 0:
             raise BadRequestError("reason is required.")
@@ -55,8 +41,13 @@ class CreateTimeAdjustmentRequestUseCase:
                     punch_id=item.original_punch_id,
                     raise_if_is_none=True,
                 )
-                if original_punch.enrollment_id != data.enrollment_id:
-                    raise BadRequestError("original_punch_id does not belong to enrollment.")
+                if (
+                    original_punch.employee_id != data.employee_id
+                    or original_punch.matricula != matricula
+                ):
+                    raise BadRequestError(
+                        "original_punch_id does not belong to employee and matricula."
+                    )
 
             if item.proposed_punched_at is not None and item.proposed_punched_at.date() != data.request_date:
                 raise BadRequestError("All proposed punches must match request_date.")
@@ -72,7 +63,8 @@ class CreateTimeAdjustmentRequestUseCase:
 
         request = TimeAdjustmentRequest(
             tenant_id=data.tenant_id,
-            enrollment_id=data.enrollment_id,
+            employee_id=data.employee_id,
+            matricula=matricula,
             request_date=data.request_date,
             request_type=data.request_type,
             reason=data.reason.strip(),

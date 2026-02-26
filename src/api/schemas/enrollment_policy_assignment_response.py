@@ -7,7 +7,8 @@ from typing import Optional
 class EnrollmentPolicyAssignmentResponse:
     id: int
     tenantId: int
-    enrollmentId: int
+    employeeId: int
+    matricula: str
     templateId: int
     effectiveFrom: date
     effectiveTo: Optional[date]

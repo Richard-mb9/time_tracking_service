@@ -4,5 +4,6 @@ from datetime import date
 
 @dataclass
 class GetBankHoursBalanceDTO:
-    enrollment_id: int
+    employee_id: int
+    matricula: str
     until_date: date

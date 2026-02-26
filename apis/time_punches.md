@@ -13,15 +13,14 @@ Observacoes de tenant:
 - Endpoints por ID usam tenant do usuario autenticado.
 
 Regras gerais:
-- Batida e vinculada a matricula (`enrollmentId`), nao a `employeeId`.
+- Batida e vinculada a `employeeId` + `matricula`.
 - Tipos validos: `IN`, `OUT`, `BREAK_START`, `BREAK_END`.
-- Nao permite duplicidade exata (`enrollmentId + punchedAt + punchType`).
+- Nao permite duplicidade exata (`employeeId + matricula + punchedAt + punchType`).
 - Valida sequencia de eventos para evitar conflitos:
   - `IN` nao pode repetir sem `OUT`.
   - `OUT` exige jornada aberta e sem intervalo aberto.
   - `BREAK_START` exige jornada aberta e sem intervalo aberto.
   - `BREAK_END` exige intervalo aberto.
-- Valida matricula ativa e vigencia da matricula.
 - Se `allowMultiEnrollmentPerDay=false`, bloqueia batidas em outra matricula do mesmo funcionario no mesmo dia.
 - Ao criar/remover batida, o sistema reapura resumo diario automaticamente.
 
@@ -37,18 +36,20 @@ Request body:
 | Campo | Tipo | Obrigatorio | Descricao |
 |---|---|---|---|
 | `tenantId` | `int` | Sim | Tenant da operacao |
-| `enrollmentId` | `int` | Sim | Matricula da batida |
+| `employeeId` | `int` | Sim | ID do funcionario |
+| `matricula` | `string` | Sim | Matricula do funcionario |
 | `punchedAt` | `datetime` ISO-8601 | Sim | Data/hora da batida |
 | `punchType` | `string` enum | Sim | `IN`, `OUT`, `BREAK_START`, `BREAK_END` |
 | `source` | `string` | Nao (default `web`) | Origem da batida |
 | `note` | `string` | Nao | Observacao livre |
-| `allowMultiEnrollmentPerDay` | `bool` | Nao (default `true`) | Permite bater em outra matricula no mesmo dia |
+| `allowMultiEnrollmentPerDay` | `bool` | Nao (default `true`) | Permite batidas em outras matriculas no mesmo dia |
 
 Exemplo request:
 ```json
 {
   "tenantId": 10,
-  "enrollmentId": 123,
+  "employeeId": 501,
+  "matricula": "MAT-0001",
   "punchedAt": "2026-02-25T08:00:00Z",
   "punchType": "IN",
   "source": "web",
@@ -67,11 +68,9 @@ Response:
 ```
 
 Erros comuns:
-- `400`: `Enrollment does not belong to tenant.`
-- `400`: `Inactive enrollment cannot receive punches.`
-- `400`: violacao de vigencia (`active_from`/`active_to`).
+- `400`: `matricula is required.`
 - `400`: conflitos de sequencia (`Invalid sequence: ...`).
-- `400`: regra de multi-matricula no mesmo dia.
+- `400`: `Employee cannot register punches in multiple matriculas in the same day.`
 - `409`: `There is already a punch with the same date, time and type.`
 
 ---
@@ -94,7 +93,8 @@ Response:
 {
   "id": 9001,
   "tenantId": 10,
-  "enrollmentId": 123,
+  "employeeId": 501,
+  "matricula": "MAT-0001",
   "punchedAt": "2026-02-25T08:00:00Z",
   "punchType": "IN",
   "source": "web",
@@ -119,7 +119,8 @@ Query params:
 |---|---|---|---|---|
 | `page` | `int` | Nao | `0` | Pagina |
 | `perPage` | `int` | Nao | `20` | Itens por pagina |
-| `enrollmentId` | `int` | Nao | - | Filtro por matricula |
+| `employeeId` | `int` | Nao | - | Filtro por funcionario |
+| `matricula` | `string` | Nao | - | Filtro por matricula |
 | `startAt` | `datetime` | Nao | - | Inicio do intervalo |
 | `endAt` | `datetime` | Nao | - | Fim do intervalo |
 | `punchType` | `string` enum | Nao | - | `IN`, `OUT`, `BREAK_START`, `BREAK_END` |
@@ -138,7 +139,8 @@ Response:
     {
       "id": 9001,
       "tenantId": 10,
-      "enrollmentId": 123,
+      "employeeId": 501,
+      "matricula": "MAT-0001",
       "punchedAt": "2026-02-25T08:00:00Z",
       "punchType": "IN",
       "source": "web",

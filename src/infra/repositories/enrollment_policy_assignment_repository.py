@@ -49,12 +49,13 @@ class EnrollmentPolicyAssignmentRepository(EnrollmentPolicyAssignmentRepositoryI
             .first()
         )
 
-    def find_current_by_enrollment_and_date(
-        self, enrollment_id: int, reference_date: date
+    def find_current_by_employee_and_matricula_and_date(
+        self, employee_id: int, matricula: str, reference_date: date
     ) -> Optional[EnrollmentPolicyAssignment]:
         return (
             self.session.query(EnrollmentPolicyAssignment)
-            .filter(EnrollmentPolicyAssignment.enrollment_id == enrollment_id)
+            .filter(EnrollmentPolicyAssignment.employee_id == employee_id)
+            .filter(EnrollmentPolicyAssignment.matricula == matricula)
             .filter(EnrollmentPolicyAssignment.effective_from <= reference_date)
             .filter(
                 or_(
@@ -68,13 +69,17 @@ class EnrollmentPolicyAssignmentRepository(EnrollmentPolicyAssignmentRepositoryI
 
     def find_overlapping(
         self,
-        enrollment_id: int,
+        employee_id: int,
+        matricula: str,
         effective_from: date,
         effective_to: Optional[date],
         exclude_assignment_id: Optional[int] = None,
     ) -> List[EnrollmentPolicyAssignment]:
         query = self.session.query(EnrollmentPolicyAssignment).filter(
-            EnrollmentPolicyAssignment.enrollment_id == enrollment_id
+            EnrollmentPolicyAssignment.employee_id == employee_id
+        )
+        query = query.filter(
+            EnrollmentPolicyAssignment.matricula == matricula
         )
 
         if exclude_assignment_id is not None:
@@ -99,7 +104,8 @@ class EnrollmentPolicyAssignmentRepository(EnrollmentPolicyAssignmentRepositoryI
         page: int,
         per_page: int,
         tenant_id: Optional[int] = None,
-        enrollment_id: Optional[int] = None,
+        employee_id: Optional[int] = None,
+        matricula: Optional[str] = None,
         template_id: Optional[int] = None,
         target_date: Optional[date] = None,
     ) -> DBPaginatedResult[EnrollmentPolicyAssignment]:
@@ -108,10 +114,11 @@ class EnrollmentPolicyAssignmentRepository(EnrollmentPolicyAssignmentRepositoryI
         if tenant_id is not None:
             query = query.filter(EnrollmentPolicyAssignment.tenant_id == tenant_id)
 
-        if enrollment_id is not None:
-            query = query.filter(
-                EnrollmentPolicyAssignment.enrollment_id == enrollment_id
-            )
+        if employee_id is not None:
+            query = query.filter(EnrollmentPolicyAssignment.employee_id == employee_id)
+
+        if matricula is not None:
+            query = query.filter(EnrollmentPolicyAssignment.matricula == matricula)
 
         if template_id is not None:
             query = query.filter(EnrollmentPolicyAssignment.template_id == template_id)

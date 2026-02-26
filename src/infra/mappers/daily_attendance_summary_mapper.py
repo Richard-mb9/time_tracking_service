@@ -1,5 +1,4 @@
-from sqlalchemy import Column, Date, ForeignKey, Integer, Table, Text
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Date, Integer, Table, Text
 
 from domain import DailyAttendanceSummary
 
@@ -9,8 +8,9 @@ daily_attendance_summary = Table(
     "daily_attendance_summary",
     mapper_registry.metadata,
     Column("id", Integer, primary_key=True),
-    Column("tenant_id", Integer, nullable=False),
-    Column("enrollment_id", Integer, ForeignKey("employee_enrollment.id"), nullable=False),
+    Column("tenant_id", Integer, nullable=False, index=True),
+    Column("employee_id", Integer, nullable=False, index=True),
+    Column("matricula", Text, nullable=False, index=True),
     Column("work_date", Date, nullable=False),
     Column("expected_minutes", Integer, nullable=False),
     Column("worked_minutes", Integer, nullable=False),
@@ -19,11 +19,4 @@ daily_attendance_summary = Table(
     Column("deficit_minutes", Integer, nullable=False),
     Column("status", Text, nullable=False),
 )
-
-mapper_registry.map_imperatively(
-    DailyAttendanceSummary,
-    daily_attendance_summary,
-    properties={
-        "enrollment": relationship("EmployeeEnrollment", back_populates="daily_summaries"),
-    },
-)
+mapper_registry.map_imperatively(DailyAttendanceSummary, daily_attendance_summary)

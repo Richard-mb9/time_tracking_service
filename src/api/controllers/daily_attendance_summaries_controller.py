@@ -33,7 +33,8 @@ class DailyAttendanceSummariesController:
         summary = RecalculateDailyAttendanceSummaryUseCase(self.repository_manager).execute(
             RecalculateDailyAttendanceSummaryDTO(
                 tenant_id=data.tenantId,
-                enrollment_id=data.enrollmentId,
+                employee_id=data.employeeId,
+                matricula=data.matricula,
                 work_date=data.workDate,
             )
         )
@@ -53,7 +54,8 @@ class DailyAttendanceSummariesController:
         requester_tenant_id: Optional[int],
         page: int,
         per_page: int,
-        enrollment_id: Optional[int],
+        employee_id: Optional[int],
+        matricula: Optional[str],
         start_date: Optional[date],
         end_date: Optional[date],
         status: Optional[DailyAttendanceStatusRequestEnum],
@@ -66,7 +68,8 @@ class DailyAttendanceSummariesController:
                 page=page,
                 per_page=per_page,
                 tenant_id=requester_tenant_id,
-                enrollment_id=enrollment_id,
+                employee_id=employee_id,
+                matricula=matricula,
                 start_date=start_date,
                 end_date=end_date,
                 status=mapped_status,
@@ -82,7 +85,8 @@ class DailyAttendanceSummariesController:
         return DailyAttendanceSummaryResponse(
             id=item.id,
             tenantId=item.tenant_id,
-            enrollmentId=item.enrollment_id,
+            employeeId=item.employee_id,
+            matricula=item.matricula,
             workDate=item.work_date,
             expectedMinutes=item.expected_minutes,
             workedMinutes=item.worked_minutes,

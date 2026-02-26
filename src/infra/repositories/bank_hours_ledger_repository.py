@@ -33,7 +33,8 @@ class BankHoursLedgerRepository(BankHoursLedgerRepositoryInterface):
         page: int,
         per_page: int,
         tenant_id: Optional[int] = None,
-        enrollment_id: Optional[int] = None,
+        employee_id: Optional[int] = None,
+        matricula: Optional[str] = None,
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
         source: Optional[BankHoursSource] = None,
@@ -43,8 +44,11 @@ class BankHoursLedgerRepository(BankHoursLedgerRepositoryInterface):
         if tenant_id is not None:
             query = query.filter(BankHoursLedger.tenant_id == tenant_id)
 
-        if enrollment_id is not None:
-            query = query.filter(BankHoursLedger.enrollment_id == enrollment_id)
+        if employee_id is not None:
+            query = query.filter(BankHoursLedger.employee_id == employee_id)
+
+        if matricula is not None:
+            query = query.filter(BankHoursLedger.matricula == matricula)
 
         if start_date is not None:
             query = query.filter(BankHoursLedger.event_date >= start_date)
@@ -67,21 +71,23 @@ class BankHoursLedgerRepository(BankHoursLedgerRepositoryInterface):
             total_count=total,
         )
 
-    def get_balance_until(self, enrollment_id: int, until_date: date) -> int:
+    def get_balance_until(self, employee_id: int, matricula: str, until_date: date) -> int:
         result = (
             self.session.query(func.coalesce(func.sum(BankHoursLedger.minutes_delta), 0))
-            .filter(BankHoursLedger.enrollment_id == enrollment_id)
+            .filter(BankHoursLedger.employee_id == employee_id)
+            .filter(BankHoursLedger.matricula == matricula)
             .filter(BankHoursLedger.event_date <= until_date)
             .scalar()
         )
         return int(result or 0)
 
     def delete_auto_generated_for_day(
-        self, enrollment_id: int, event_date: date, source: BankHoursSource
+        self, employee_id: int, matricula: str, event_date: date, source: BankHoursSource
     ) -> None:
         (
             self.session.query(BankHoursLedger)
-            .filter(BankHoursLedger.enrollment_id == enrollment_id)
+            .filter(BankHoursLedger.employee_id == employee_id)
+            .filter(BankHoursLedger.matricula == matricula)
             .filter(BankHoursLedger.event_date == event_date)
             .filter(BankHoursLedger.source == source)
             .delete(synchronize_session=False)

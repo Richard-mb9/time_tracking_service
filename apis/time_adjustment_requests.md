@@ -20,11 +20,11 @@ Workflow de status:
 - `APPLIED`
 
 Regras gerais:
-- Solicita ajuste para uma matricula e uma data (`requestDate`).
+- Solicita ajuste para `employeeId` + `matricula` e uma data (`requestDate`).
 - Deve conter ao menos um item.
 - Item novo exige `proposedPunchType` e `proposedPunchedAt`.
 - `proposedPunchedAt` deve pertencer ao `requestDate`.
-- Se `originalPunchId` informado, a batida original deve pertencer a matricula da solicitacao.
+- Se `originalPunchId` informado, a batida original deve pertencer ao mesmo `employeeId` + `matricula` da solicitacao.
 - Decisao so e permitida para status `PENDING`.
 - Aplicacao so e permitida para status `APPROVED`.
 - Aplicacao reapura dias afetados.
@@ -41,7 +41,8 @@ Request body:
 | Campo | Tipo | Obrigatorio | Descricao |
 |---|---|---|---|
 | `tenantId` | `int` | Sim | Tenant da solicitacao |
-| `enrollmentId` | `int` | Sim | Matricula alvo |
+| `employeeId` | `int` | Sim | ID do funcionario |
+| `matricula` | `string` | Sim | Matricula do funcionario |
 | `requestDate` | `date` | Sim | Data do ajuste |
 | `requestType` | `string` enum | Sim | `ADD_PUNCH`, `EDIT_PUNCH`, `JUSTIFY_ABSENCE`, `REMOVE_PUNCH` |
 | `reason` | `string` | Sim | Justificativa textual |
@@ -64,7 +65,8 @@ Exemplo request:
 ```json
 {
   "tenantId": 10,
-  "enrollmentId": 123,
+  "employeeId": 501,
+  "matricula": "MAT-0001",
   "requestDate": "2026-02-25",
   "requestType": "ADD_PUNCH",
   "reason": "Esqueci de registrar entrada",
@@ -90,9 +92,10 @@ Response:
 ```
 
 Erros comuns:
-- `400`: `Inactive enrollment cannot receive adjustments.`
+- `400`: `matricula is required.`
 - `400`: `At least one adjustment item is required.`
 - `400`: validacoes dos itens (`proposed` obrigatorio, data divergente, duplicado).
+- `400`: `original_punch_id does not belong to employee and matricula.`
 - `404`: `Time punch not found.` (quando `originalPunchId` invalido)
 
 ---
@@ -115,7 +118,8 @@ Response:
 {
   "id": 450,
   "tenantId": 10,
-  "enrollmentId": 123,
+  "employeeId": 501,
+  "matricula": "MAT-0001",
   "requestDate": "2026-02-25",
   "requestType": "ADD_PUNCH",
   "status": "PENDING",
@@ -154,7 +158,8 @@ Query params:
 |---|---|---|---|---|
 | `page` | `int` | Nao | `0` | Pagina |
 | `perPage` | `int` | Nao | `20` | Itens por pagina |
-| `enrollmentId` | `int` | Nao | - | Filtro por matricula |
+| `employeeId` | `int` | Nao | - | Filtro por funcionario |
+| `matricula` | `string` | Nao | - | Filtro por matricula |
 | `status` | `string` enum | Nao | - | `PENDING`, `APPROVED`, `REJECTED`, `APPLIED` |
 | `startDate` | `date` | Nao | - | Inicio por `requestDate` |
 | `endDate` | `date` | Nao | - | Fim por `requestDate` |
@@ -169,7 +174,8 @@ Response:
     {
       "id": 450,
       "tenantId": 10,
-      "enrollmentId": 123,
+      "employeeId": 501,
+      "matricula": "MAT-0001",
       "requestDate": "2026-02-25",
       "requestType": "ADD_PUNCH",
       "status": "PENDING",
@@ -252,6 +258,7 @@ Response:
 Erros comuns:
 - `400`: `Only approved requests can be applied.`
 - `400`: sequencia final invalida de batidas.
+- `400`: `original_punch_id does not belong to employee and matricula.`
 - `404`: `Time punch not found.` (item com referencia invalida)
 
 ---

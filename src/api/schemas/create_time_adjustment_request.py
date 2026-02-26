@@ -9,7 +9,8 @@ from .enums import TimeAdjustmentTypeRequestEnum
 
 class CreateTimeAdjustmentRequest(BaseModel):
     tenantId: int
-    enrollmentId: int
+    employeeId: int
+    matricula: str
     requestDate: date
     requestType: TimeAdjustmentTypeRequestEnum
     reason: str

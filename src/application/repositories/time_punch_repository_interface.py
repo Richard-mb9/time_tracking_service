@@ -26,23 +26,35 @@ class TimePunchRepositoryInterface(ABC):
 
     @abstractmethod
     def find_duplicate(
-        self, enrollment_id: int, punched_at: datetime, punch_type: PunchType
+        self, employee_id: int, matricula: str, punched_at: datetime, punch_type: PunchType
     ) -> Optional[TimePunch]:
         raise NotImplementedError
 
     @abstractmethod
-    def find_last_by_enrollment(self, enrollment_id: int) -> Optional[TimePunch]:
+    def find_last_by_employee_and_matricula(
+        self, employee_id: int, matricula: str
+    ) -> Optional[TimePunch]:
         raise NotImplementedError
 
     @abstractmethod
-    def find_by_enrollment_and_period(
-        self, enrollment_id: int, start_at: datetime, end_at: datetime
+    def find_by_employee_and_matricula_and_period(
+        self, employee_id: int, matricula: str, start_at: datetime, end_at: datetime
     ) -> List[TimePunch]:
         raise NotImplementedError
 
     @abstractmethod
-    def find_by_enrollment_and_date(
-        self, enrollment_id: int, work_date: date
+    def find_by_employee_and_matricula_and_date(
+        self, employee_id: int, matricula: str, work_date: date
+    ) -> List[TimePunch]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def find_other_matriculas_with_punch_on_date(
+        self,
+        tenant_id: int,
+        employee_id: int,
+        work_date: date,
+        matricula_to_exclude: str,
     ) -> List[TimePunch]:
         raise NotImplementedError
 
@@ -52,7 +64,8 @@ class TimePunchRepositoryInterface(ABC):
         page: int,
         per_page: int,
         tenant_id: Optional[int] = None,
-        enrollment_id: Optional[int] = None,
+        employee_id: Optional[int] = None,
+        matricula: Optional[str] = None,
         start_at: Optional[datetime] = None,
         end_at: Optional[datetime] = None,
         punch_type: Optional[PunchType] = None,

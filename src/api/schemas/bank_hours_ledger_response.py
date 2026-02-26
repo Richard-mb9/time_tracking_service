@@ -7,7 +7,8 @@ from typing import Optional
 class BankHoursLedgerResponse:
     id: int
     tenantId: int
-    enrollmentId: int
+    employeeId: int
+    matricula: str
     eventDate: date
     minutesDelta: int
     source: str

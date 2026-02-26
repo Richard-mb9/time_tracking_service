@@ -22,7 +22,8 @@ class BankHoursLedgerRepositoryInterface(ABC):
         page: int,
         per_page: int,
         tenant_id: Optional[int] = None,
-        enrollment_id: Optional[int] = None,
+        employee_id: Optional[int] = None,
+        matricula: Optional[str] = None,
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
         source: Optional[BankHoursSource] = None,
@@ -30,11 +31,11 @@ class BankHoursLedgerRepositoryInterface(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_balance_until(self, enrollment_id: int, until_date: date) -> int:
+    def get_balance_until(self, employee_id: int, matricula: str, until_date: date) -> int:
         raise NotImplementedError
 
     @abstractmethod
     def delete_auto_generated_for_day(
-        self, enrollment_id: int, event_date: date, source: BankHoursSource
+        self, employee_id: int, matricula: str, event_date: date, source: BankHoursSource
     ) -> None:
         raise NotImplementedError

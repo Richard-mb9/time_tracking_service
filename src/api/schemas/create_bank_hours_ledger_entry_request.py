@@ -8,7 +8,8 @@ from .enums import BankHoursSourceRequestEnum
 
 class CreateBankHoursLedgerEntryRequest(BaseModel):
     tenantId: int
-    enrollmentId: int
+    employeeId: int
+    matricula: str
     eventDate: date
     minutesDelta: int
     source: BankHoursSourceRequestEnum

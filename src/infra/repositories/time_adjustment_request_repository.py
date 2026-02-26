@@ -52,7 +52,8 @@ class TimeAdjustmentRequestRepository(TimeAdjustmentRequestRepositoryInterface):
         page: int,
         per_page: int,
         tenant_id: Optional[int] = None,
-        enrollment_id: Optional[int] = None,
+        employee_id: Optional[int] = None,
+        matricula: Optional[str] = None,
         status: Optional[TimeAdjustmentStatus] = None,
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
@@ -62,8 +63,11 @@ class TimeAdjustmentRequestRepository(TimeAdjustmentRequestRepositoryInterface):
         if tenant_id is not None:
             query = query.filter(TimeAdjustmentRequest.tenant_id == tenant_id)
 
-        if enrollment_id is not None:
-            query = query.filter(TimeAdjustmentRequest.enrollment_id == enrollment_id)
+        if employee_id is not None:
+            query = query.filter(TimeAdjustmentRequest.employee_id == employee_id)
+
+        if matricula is not None:
+            query = query.filter(TimeAdjustmentRequest.matricula == matricula)
 
         if status is not None:
             query = query.filter(TimeAdjustmentRequest.status == status)

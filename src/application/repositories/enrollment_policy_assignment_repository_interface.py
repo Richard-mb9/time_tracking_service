@@ -28,15 +28,16 @@ class EnrollmentPolicyAssignmentRepositoryInterface(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def find_current_by_enrollment_and_date(
-        self, enrollment_id: int, reference_date: date
+    def find_current_by_employee_and_matricula_and_date(
+        self, employee_id: int, matricula: str, reference_date: date
     ) -> Optional[EnrollmentPolicyAssignment]:
         raise NotImplementedError
 
     @abstractmethod
     def find_overlapping(
         self,
-        enrollment_id: int,
+        employee_id: int,
+        matricula: str,
         effective_from: date,
         effective_to: Optional[date],
         exclude_assignment_id: Optional[int] = None,
@@ -49,7 +50,8 @@ class EnrollmentPolicyAssignmentRepositoryInterface(ABC):
         page: int,
         per_page: int,
         tenant_id: Optional[int] = None,
-        enrollment_id: Optional[int] = None,
+        employee_id: Optional[int] = None,
+        matricula: Optional[str] = None,
         template_id: Optional[int] = None,
         target_date: Optional[date] = None,
     ) -> DBPaginatedResult[EnrollmentPolicyAssignment]:

@@ -4,6 +4,7 @@ from datetime import date
 
 @dataclass
 class BankHoursBalanceResponse:
-    enrollmentId: int
+    employeeId: int
+    matricula: str
     untilDate: date
     balanceMinutes: int
