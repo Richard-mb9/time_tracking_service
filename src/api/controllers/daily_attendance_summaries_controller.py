@@ -1,6 +1,8 @@
 from datetime import date
 from typing import Optional
 
+from commons.handlers import get_enum_value
+
 from api.schemas import (
     DailyAttendanceSummaryResponse,
     DailyAttendanceStatusRequestEnum,
@@ -30,7 +32,9 @@ class DailyAttendanceSummariesController:
     def recalculate(
         self, data: RecalculateDailyAttendanceSummaryRequest
     ) -> DailyAttendanceSummaryResponse:
-        summary = RecalculateDailyAttendanceSummaryUseCase(self.repository_manager).execute(
+        summary = RecalculateDailyAttendanceSummaryUseCase(
+            self.repository_manager
+        ).execute(
             RecalculateDailyAttendanceSummaryDTO(
                 tenant_id=data.tenantId,
                 employee_id=data.employeeId,
@@ -40,8 +44,12 @@ class DailyAttendanceSummariesController:
         )
         return self.__to_response(summary)
 
-    def find_by_id(self, summary_id: int, tenant_id: int) -> DailyAttendanceSummaryResponse:
-        summary = FindDailyAttendanceSummaryByIdUseCase(self.repository_manager).execute(
+    def find_by_id(
+        self, summary_id: int, tenant_id: int
+    ) -> DailyAttendanceSummaryResponse:
+        summary = FindDailyAttendanceSummaryByIdUseCase(
+            self.repository_manager
+        ).execute(
             summary_id=summary_id,
             raise_if_is_none=True,
         )
@@ -81,7 +89,9 @@ class DailyAttendanceSummariesController:
             page=result.page,
         )
 
-    def __to_response(self, item: DailyAttendanceSummary) -> DailyAttendanceSummaryResponse:
+    def __to_response(
+        self, item: DailyAttendanceSummary
+    ) -> DailyAttendanceSummaryResponse:
         return DailyAttendanceSummaryResponse(
             id=item.id,
             tenantId=item.tenant_id,
@@ -93,5 +103,5 @@ class DailyAttendanceSummariesController:
             breakMinutes=item.break_minutes,
             overtimeMinutes=item.overtime_minutes,
             deficitMinutes=item.deficit_minutes,
-            status=item.status.value,
+            status=get_enum_value(item.status),
         )

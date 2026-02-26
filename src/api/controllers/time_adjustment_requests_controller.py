@@ -1,6 +1,8 @@
 from datetime import date
 from typing import Optional
 
+from commons.handlers import get_enum_value
+
 from api.routers.dependencies.access_token_data import AccessTokenData
 from api.schemas import (
     CreateTimeAdjustmentRequest,
@@ -72,7 +74,9 @@ class TimeAdjustmentRequestsController:
         )
         return DefaultCreateResponse(id=request.id)
 
-    def find_by_id(self, request_id: int, tenant_id: int) -> TimeAdjustmentRequestResponse:
+    def find_by_id(
+        self, request_id: int, tenant_id: int
+    ) -> TimeAdjustmentRequestResponse:
         request = FindTimeAdjustmentRequestByIdUseCase(self.repository_manager).execute(
             request_id=request_id,
             raise_if_is_none=True,
@@ -143,15 +147,17 @@ class TimeAdjustmentRequestsController:
             tenant_id=tenant_id,
         )
 
-    def __to_response(self, request: TimeAdjustmentRequest) -> TimeAdjustmentRequestResponse:
+    def __to_response(
+        self, request: TimeAdjustmentRequest
+    ) -> TimeAdjustmentRequestResponse:
         return TimeAdjustmentRequestResponse(
             id=request.id,
             tenantId=request.tenant_id,
             employeeId=request.employee_id,
             matricula=request.matricula,
             requestDate=request.request_date,
-            requestType=request.request_type.value,
-            status=request.status.value,
+            requestType=get_enum_value(request.request_type.value),
+            status=get_enum_value(request.status.value),
             reason=request.reason,
             requesterUserId=request.requester_user_id,
             decidedAt=request.decided_at,
@@ -160,12 +166,14 @@ class TimeAdjustmentRequestsController:
             items=[self.__to_item_response(item) for item in (request.items or [])],
         )
 
-    def __to_item_response(self, item: TimeAdjustmentItem) -> TimeAdjustmentItemResponse:
+    def __to_item_response(
+        self, item: TimeAdjustmentItem
+    ) -> TimeAdjustmentItemResponse:
         return TimeAdjustmentItemResponse(
             id=item.id,
             requestId=item.request_id,
             proposedPunchType=(
-                item.proposed_punch_type.value
+                get_enum_value(item.proposed_punch_type.value)
                 if item.proposed_punch_type is not None
                 else None
             ),

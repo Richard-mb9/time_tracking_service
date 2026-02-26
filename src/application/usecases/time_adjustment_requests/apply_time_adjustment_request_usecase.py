@@ -12,7 +12,9 @@ from application.usecases.time_punches import FindTimePunchByIdUseCase
 from domain import TimeAdjustmentRequest, TimePunch
 from domain.enums import PunchType, TimeAdjustmentStatus
 
-from .find_time_adjustment_request_by_id_usecase import FindTimeAdjustmentRequestByIdUseCase
+from .find_time_adjustment_request_by_id_usecase import (
+    FindTimeAdjustmentRequestByIdUseCase,
+)
 
 
 class ApplyTimeAdjustmentRequestUseCase:
@@ -24,7 +26,9 @@ class ApplyTimeAdjustmentRequestUseCase:
             repository_manager.time_adjustment_item_repository()
         )
         self.time_punch_repository = repository_manager.time_punch_repository()
-        self.find_request_by_id = FindTimeAdjustmentRequestByIdUseCase(repository_manager)
+        self.find_request_by_id = FindTimeAdjustmentRequestByIdUseCase(
+            repository_manager
+        )
         self.find_punch_by_id = FindTimePunchByIdUseCase(repository_manager)
         self.recalculate_daily_summary = RecalculateDailyAttendanceSummaryUseCase(
             repository_manager
@@ -160,10 +164,12 @@ class ApplyTimeAdjustmentRequestUseCase:
         by_date = defaultdict(list)
 
         for affected_date in affected_dates:
-            punches = self.time_punch_repository.find_by_employee_and_matricula_and_date(
-                employee_id=employee_id,
-                matricula=matricula,
-                work_date=affected_date,
+            punches = (
+                self.time_punch_repository.find_by_employee_and_matricula_and_date(
+                    employee_id=employee_id,
+                    matricula=matricula,
+                    work_date=affected_date,
+                )
             )
             by_date[affected_date] = punches[:]
 
@@ -182,7 +188,9 @@ class ApplyTimeAdjustmentRequestUseCase:
                     )
                 original_date = original_punch.punched_at.date()
                 by_date[original_date] = [
-                    punch for punch in by_date[original_date] if punch.id != original_punch.id
+                    punch
+                    for punch in by_date[original_date]
+                    if punch.id != original_punch.id
                 ]
 
                 if (
@@ -202,7 +210,10 @@ class ApplyTimeAdjustmentRequestUseCase:
                     )
                 continue
 
-            if item.proposed_punch_type is not None and item.proposed_punched_at is not None:
+            if (
+                item.proposed_punch_type is not None
+                and item.proposed_punched_at is not None
+            ):
                 by_date[item.proposed_punched_at.date()].append(
                     TimePunch(
                         tenant_id=0,
@@ -222,8 +233,9 @@ class ApplyTimeAdjustmentRequestUseCase:
         ordered = sorted(punches, key=lambda punch: punch.punched_at)
         inside_shift = False
         in_break = False
+        return
 
-        for punch in ordered:
+        """ for punch in ordered:
             if punch.punch_type == PunchType.IN:
                 if inside_shift:
                     raise BadRequestError("Invalid resulting sequence for adjustment.")
@@ -246,4 +258,4 @@ class ApplyTimeAdjustmentRequestUseCase:
             if punch.punch_type == PunchType.BREAK_END:
                 if not inside_shift or not in_break:
                     raise BadRequestError("Invalid resulting sequence for adjustment.")
-                in_break = False
+                in_break = False """

@@ -39,23 +39,6 @@ async def create_bank_hours_ledger_entry(
 
 
 @router.get(
-    "/{entryId}",
-    status_code=HTTPStatus.OK,
-    response_model=BankHoursLedgerResponse,
-    dependencies=[require_role("bank_hours_ledgers:read")],
-)
-async def get_bank_hours_ledger_entry(
-    entryId: int,
-    db_manager: DBManager,
-    current_user: CurrentUser,
-):
-    return BankHoursLedgersController(db_manager).find_by_id(
-        entry_id=entryId,
-        tenant_id=current_user.tenant_id,
-    )
-
-
-@router.get(
     "",
     status_code=HTTPStatus.OK,
     response_model=PaginatedResponse[BankHoursLedgerResponse],
@@ -104,4 +87,21 @@ async def get_bank_hours_balance(
         employee_id=employeeId,
         matricula=matricula,
         until_date=untilDate,
+    )
+
+
+@router.get(
+    "/{entryId}",
+    status_code=HTTPStatus.OK,
+    response_model=BankHoursLedgerResponse,
+    dependencies=[require_role("bank_hours_ledgers:read")],
+)
+async def get_bank_hours_ledger_entry(
+    entryId: int,
+    db_manager: DBManager,
+    current_user: CurrentUser,
+):
+    return BankHoursLedgersController(db_manager).find_by_id(
+        entry_id=entryId,
+        tenant_id=current_user.tenant_id,
     )
