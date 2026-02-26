@@ -100,8 +100,8 @@ WITH required_permissions (name, description) AS (
             'Total Acesso a Templates de Jornada'
         ),
         (
-            'time-tracking-employee:list',
-            'Listar Funcionarios'
+            'time-management:read',
+            'Acesso a Gestão de Ponto'
         )
 ),
 permissions_to_insert AS (
