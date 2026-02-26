@@ -1,0 +1,12 @@
+**/__pycache__
+.pytest_cache
+/venv
+/node_modules
+package-lock.json
+.coverage
+/htmlcov
+/.serverless/*.zip
+/.serverless/requirements
+/.pytest_cache
+/python
+.serverless

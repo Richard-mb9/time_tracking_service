@@ -1,0 +1,358 @@
+FUNCIONALIDADES E VALIDAÇÕES DOS USE CASES — SISTEMA DE PONTO
+(sem tecnologia; apenas regras, comportamentos e validações)
+
+Premissas e decisões
+- Sistema multi-tenant.
+- Identificadores de tenant, funcionário e matrícula (vínculo) são gerenciados por outro sistema; aqui apenas armazenamos e referenciamos.
+- Todas as regras de autenticação, permissões e auditoria (logs) já existem fora deste sistema e não fazem parte destes use cases.
+- Batidas de ponto são vinculadas à MATRÍCULA (vínculo), não diretamente ao funcionário.
+- Templates (políticas de jornada) são fixos e atribuídos à matrícula com vigência (effective_from / effective_to).
+- Apuração (resumo diário e banco de horas) é materializada, mas as regras de cálculo são definidas na camada de negócio.
+- Solicitações de ajuste seguem workflow com status (PENDING, APPROVED, REJECTED, APPLIED).
+
+================================================================================
+1) CADASTRO E SINCRONIZAÇÃO DE MATRÍCULAS (VÍNCULOS)
+================================================================================
+Objetivo
+- Manter o cadastro local das matrículas recebidas do sistema externo, para permitir batidas e apuração.
+
+Funcionalidades
+- Registrar matrícula com:
+  - tenant_id
+  - employee_id (global no sistema externo)
+  - enrollment_code (matrícula / código do vínculo)
+  - datas de vigência/atividade (ex.: active_from, active_to) e/ou flag de ativo
+  - metadados necessários ao ponto (se houver)
+- Atualizar dados da matrícula (ex.: status/atividade, datas, etc.).
+- Consultar matrícula(s) por tenant, employee_id, enrollment_code e status (ativa/inativa).
+
+Validações
+- enrollment_code:
+  - Não pode repetir dentro do mesmo tenant.
+  - Não pode repetir para o mesmo funcionário dentro do tenant.
+  - Pode repetir entre tenants diferentes.
+- A matrícula deve pertencer ao tenant informado.
+- Datas (quando existirem):
+  - active_from <= active_to (quando active_to existir).
+- Bloqueios:
+  - Matrícula inativa não pode receber batidas nem ajustes.
+  - Matrícula inativa não pode ter template vigente atribuído (ou deve invalidar/encerrar vigências).
+
+Resultados esperados
+- Matrículas consistentes e prontas para receber templates e batidas.
+
+================================================================================
+2) GERENCIAR TEMPLATES (POLÍTICAS DE JORNADA) DO TENANT
+================================================================================
+Objetivo
+- Criar e manter templates que definem parâmetros de jornada.
+
+Funcionalidades
+- Criar template por tenant com:
+  - Nome/identificador amigável
+  - Carga diária em minutos (expected daily work minutes)
+  - Intervalo padrão em minutos (break minutes) quando aplicável
+  - Outros parâmetros de política (se previstos)
+- Editar template (com regras de impacto abaixo).
+- Listar e consultar templates do tenant.
+- (Opcional) Inativar template, mantendo histórico.
+
+Validações
+- tenant_id obrigatório.
+- Nome do template:
+  - Não vazio.
+  - Recomendado: único por tenant (para evitar ambiguidade operacional).
+- daily_work_minutes:
+  - Deve ser inteiro positivo.
+- break_minutes:
+  - Deve ser inteiro >= 0.
+  - Não pode exceder daily_work_minutes (quando ambos existirem).
+- Alterações de template:
+  - Se existir vínculo/atribuição vigente usando o template, deve haver regra clara:
+    - OU proibir edição de campos que afetem apuração retroativa,
+    - OU versionar (criar novo template) e manter o anterior imutável.
+
+Resultados esperados
+- Templates válidos, reutilizáveis e com rastreabilidade histórica de uso (via atribuições com vigência).
+
+================================================================================
+3) ATRIBUIR TEMPLATE À MATRÍCULA COM VIGÊNCIA
+================================================================================
+Objetivo
+- Definir qual política de jornada vale para cada matrícula em cada período.
+
+Funcionalidades
+- Atribuir template a uma matrícula com:
+  - effective_from (obrigatório)
+  - effective_to (opcional)
+- Consultar “template vigente” de uma matrícula em uma data.
+- Listar histórico de atribuições da matrícula.
+
+Validações
+- Matrícula deve existir e pertencer ao tenant.
+- Template deve existir e pertencer ao tenant.
+- effective_from obrigatório.
+- effective_from <= effective_to (quando effective_to existir).
+- Não permitir sobreposição de vigência:
+  - Para a mesma matrícula, não pode haver duas atribuições cujos períodos se cruzem.
+- (Recomendado) Permitir “troca de template”:
+  - Encerrar a vigência anterior no dia anterior ao início da nova (ou conforme regra definida).
+
+Resultados esperados
+- Para qualquer data, no máximo um template vigente por matrícula.
+
+================================================================================
+4) REGISTRAR BATIDA DE PONTO (PUNCH)
+================================================================================
+Objetivo
+- Registrar eventos de ponto associados à matrícula.
+
+Tipos de batida (conceitual)
+- Entrada (IN)
+- Saída (OUT)
+- Início de intervalo (BREAK_START)
+- Fim de intervalo (BREAK_END)
+(Os nomes são apenas conceituais; o sistema deve suportar esses quatro eventos.)
+
+Funcionalidades
+- Registrar uma batida informando:
+  - matrícula
+  - data/hora da batida
+  - tipo de batida
+  - (opcional) origem/canal para análise futura (sem implicar auditoria)
+- Consultar batidas por matrícula e período.
+- (Opcional) Cancelar/invalidar batida:
+  - Somente via ajuste aprovado (ver use cases de ajuste), para preservar rastreabilidade.
+
+Validações de integridade
+- Matrícula deve existir, pertencer ao tenant e estar ativa na data/hora da batida.
+- Regra de “multi-matrícula no mesmo dia”:
+  - O sistema deve verificar a política aplicável (por tenant, por funcionário, por matrícula — conforme configurado externamente na aplicação):
+    - Se NÃO permitido: bloquear batidas em outra matrícula no mesmo dia após já haver batida válida em uma matrícula distinta.
+    - Se permitido: aceitar e garantir apuração separada por matrícula.
+- Não permitir duplicidade exata:
+  - Mesma matrícula + mesmo tipo + mesma data/hora (ou dentro de uma tolerância definida) deve ser rejeitada para evitar double-click.
+- Sequência/coerência de batidas (conflitos):
+  - Não permitir duas “entradas” seguidas sem uma “saída” (IN seguido de IN).
+  - Não permitir duas “saídas” seguidas sem uma “entrada” (OUT seguido de OUT).
+  - Não permitir BREAK_START sem ter havido IN e sem já estar em intervalo.
+  - Não permitir BREAK_END sem ter havido BREAK_START em aberto.
+  - Não permitir OUT enquanto houver intervalo aberto (BREAK_START sem BREAK_END), a menos que haja regra explícita para isso.
+  - Não permitir batidas que resultem em intervalos negativos/tempos incoerentes (ex.: BREAK_END antes de BREAK_START).
+- Restrições de data/hora (definir política):
+  - Ex.: aceitar batidas retroativas até X dias? (Se existir regra, validar aqui.)
+  - Ex.: aceitar batidas muito futuras? (Normalmente bloquear.)
+
+Resultados esperados
+- Histórico de batidas consistente e suficiente para apuração.
+
+================================================================================
+5) CONSULTAR ESPELHO DO PONTO (VISUALIZAÇÃO OPERACIONAL)
+================================================================================
+Objetivo
+- Permitir que funcionário/gestor veja batidas, jornada prevista e apuração do dia.
+
+Funcionalidades
+- Exibir, por matrícula e período:
+  - batidas brutas
+  - template vigente no dia
+  - tempo trabalhado calculado
+  - intervalo calculado
+  - saldo do dia (minutos a mais/menos)
+  - status do dia (ex.: completo/incompleto/pendente de ajuste)
+- Indicar inconsistências detectadas (ex.: intervalo aberto, falta de saída).
+- Exibir solicitações de ajuste relacionadas ao período (quando existirem).
+
+Validações
+- Garantir recorte por tenant e por matrícula.
+- Ao calcular visualizações, usar o template vigente na data.
+
+Resultados esperados
+- Transparência para conferência diária e suporte a decisões (ajustes, aprovações).
+
+================================================================================
+6) SOLICITAR AJUSTE DE PONTO (ESQUECI/ERREI A BATIDA)
+================================================================================
+Objetivo
+- Permitir correções sem alterar diretamente o histórico sem rastreabilidade.
+
+Funcionalidades
+- Criar solicitação de ajuste para uma matrícula e uma data (request_date) com:
+  - tipo/motivo (campo livre ou categorizado)
+  - descrição/justificativa
+  - itens de ajuste (um ou mais), cada item representando:
+    - inclusão de uma batida proposta (tipo + data/hora)
+    - e/ou alteração de uma batida existente (se suportado)
+    - e/ou remoção lógica de uma batida (se suportado via “item de remoção”)
+- Listar solicitações por:
+  - matrícula, funcionário, período e status.
+- Cancelar solicitação enquanto ainda não analisada (se regra permitir).
+
+Validações
+- Matrícula deve existir e estar ativa na data do ajuste.
+- request_date obrigatória e coerente com os itens.
+- Itens devem ser coerentes:
+  - Cada item deve informar ao menos um tipo e uma data/hora proposta quando for inclusão/alteração.
+  - Não permitir itens duplicados (mesma proposta repetida).
+  - Não permitir propor sequência inválida (as mesmas regras de conflito das batidas devem ser aplicadas ao conjunto final esperado).
+- Restrições de janela:
+  - Ajustes retroativos somente dentro do período permitido (se houver).
+- Status inicial sempre PENDING.
+
+Resultados esperados
+- Solicitação estruturada, pronta para avaliação.
+
+================================================================================
+7) ANALISAR SOLICITAÇÃO DE AJUSTE (APROVAR / REJEITAR)
+================================================================================
+Objetivo
+- Permitir que gestor/área responsável valide solicitações.
+
+Funcionalidades
+- Aprovar solicitação (muda para APPROVED) com:
+  - comentário do aprovador (opcional)
+  - data/hora da decisão (para rastreabilidade do sistema de logs externo)
+- Rejeitar solicitação (muda para REJECTED) com:
+  - justificativa obrigatória (recomendado)
+- Reabrir/retornar para PENDING (se existir regra) — opcional.
+
+Validações
+- Só permitir transição:
+  - PENDING -> APPROVED
+  - PENDING -> REJECTED
+- Impedir decisão se a matrícula não pertencer ao tenant do solicitante/gestor.
+- (Recomendado) Impedir aprovação quando:
+  - a proposta geraria conflito com batidas já existentes e não contempladas pela solicitação.
+
+Resultados esperados
+- Solicitações decididas, sem aplicar mudanças ainda (a menos que haja regra de auto-aplicação).
+
+================================================================================
+8) APLICAR AJUSTE APROVADO (GERAR/ALTERAR BATIDAS E REAPURAR)
+================================================================================
+Objetivo
+- Materializar o ajuste aprovado e refletir na apuração.
+
+Funcionalidades
+- Aplicar solicitação APPROVED:
+  - Criar as batidas necessárias conforme os itens aprovados
+  - Alterar/remover logicamente batidas quando suportado pelo modelo de itens
+  - Marcar solicitação como APPLIED
+- Reprocessar a apuração do(s) dia(s) afetado(s):
+  - Atualizar resumo diário
+  - Atualizar banco de horas (ledger) conforme regras
+
+Validações
+- Só permitir APPLY para solicitações com status APPROVED.
+- Aplicação deve ser idempotente:
+  - Aplicar duas vezes não pode duplicar batidas nem duplicar lançamentos no banco de horas.
+- Antes de aplicar:
+  - Revalidar consistência final das batidas resultantes (sequência e conflitos).
+- Concorrência/consistência:
+  - Se o dia já foi fechado (se existir fechamento), impedir aplicação ou abrir exceção controlada.
+
+Resultados esperados
+- Histórico consistente + resumo diário atualizado + saldo refletido no banco de horas.
+
+================================================================================
+9) APURAÇÃO DIÁRIA (GERAR/ATUALIZAR RESUMO DO DIA)
+================================================================================
+Objetivo
+- Consolidar diariamente os dados de batidas em métricas de jornada.
+
+Funcionalidades
+- Para uma matrícula e uma data:
+  - Determinar template vigente
+  - Calcular:
+    - minutos trabalhados
+    - minutos de intervalo
+    - minutos esperados (do template)
+    - minutos extras (se trabalhado > esperado)
+    - minutos de débito (se trabalhado < esperado)
+    - status do dia (completo/incompleto/ajuste pendente)
+- Persistir/atualizar o resumo diário materializado.
+- Permitir reprocessamento:
+  - Quando novas batidas forem inseridas
+  - Quando ajustes forem aplicados
+  - Quando template vigente mudar (se permitir mudanças retroativas)
+
+Validações
+- Deve existir template vigente para a data:
+  - Se não existir, marcar dia como “sem política” e impedir cálculo completo (ou aplicar política padrão definida).
+- Batidas inconsistentes:
+  - Se houver lacunas (ex.: IN sem OUT), marcar como incompleto e não gerar saldo definitivo.
+- Garantir consistência por tenant + matrícula + data:
+  - Deve existir no máximo um resumo por dia.
+
+Resultados esperados
+- Resumo diário confiável para consulta e geração de banco de horas.
+
+================================================================================
+10) BANCO DE HORAS (LEDGER DE MOVIMENTAÇÕES)
+================================================================================
+Objetivo
+- Controlar saldo de banco de horas por meio de lançamentos (movimentações), não por “saldo fixo”.
+
+Funcionalidades
+- Gerar lançamentos (minutes_delta positivo ou negativo) por:
+  - apuração diária (saldo do dia)
+  - eventos manuais (se permitido): ajustes administrativos, compensações, etc.
+- Consultar extrato por matrícula e período.
+- Consultar saldo acumulado até uma data.
+- Estornar lançamento (se necessário) via novo lançamento inverso (não apagar histórico).
+
+Validações
+- Um lançamento deve sempre:
+  - Pertencer ao tenant e matrícula corretos
+  - Conter event_date
+  - Conter minutes_delta (pode ser positivo ou negativo, mas não zero, recomendado)
+  - Conter motivo/descrição (recomendado)
+- Idempotência de lançamentos gerados por apuração:
+  - Para um mesmo dia e matrícula, garantir que reprocessamentos não gerem duplicidade.
+  - Estratégias aceitas (conceituais):
+    - substituir o conjunto de lançamentos do dia,
+    - ou estornar anterior e lançar novo.
+- Se o dia estiver “incompleto”, não lançar no banco de horas (ou lançar como provisório, se houver esse conceito).
+
+Resultados esperados
+- Extrato auditável e saldo consistente calculado a partir do histórico.
+
+================================================================================
+11) FECHAMENTO DE PERÍODO (OPCIONAL, SE NECESSÁRIO)
+================================================================================
+Objetivo
+- Bloquear alterações após consolidação (folha, contabilidade, etc.).
+
+Funcionalidades
+- Fechar período por tenant (e/ou por matrícula) com data de corte.
+- Impedir novas batidas/ajustes com data anterior ao fechamento.
+- Reabrir período (exceção controlada) com motivo.
+
+Validações
+- Fechamento não pode ocorrer se existirem dias “incompletos” no período (se essa for a política).
+- Reabertura deve exigir justificativa.
+
+Resultados esperados
+- Estabilidade operacional após consolidação.
+
+================================================================================
+12) RELATÓRIOS OPERACIONAIS (CONSULTAS)
+================================================================================
+Objetivo
+- Permitir gestão e acompanhamento do ponto.
+
+Funcionalidades
+- Relatório por matrícula/funcionário:
+  - dias com ausência de batida
+  - dias incompletos
+  - horas extras e débito por período
+  - banco de horas (saldo e extrato)
+- Relatório por tenant:
+  - indicadores agregados (quantos dias incompletos, total de extras/débito, etc.)
+- Exportação (somente como comportamento: “gerar arquivo/relatório”; formato é decisão de produto).
+
+Validações
+- Sempre aplicar filtros por tenant e permissões (fora do escopo, mas o recorte funcional deve existir).
+- Datas de período válidas (início <= fim).
+
+FIM
