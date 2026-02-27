@@ -28,7 +28,7 @@ class EmployeeHolidayCalendarAssignmentRepositoryInterface(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def find_by_employee_id_and_tenant_id(
-        self, employee_id: int, tenant_id: int
+    def find_by_employee_id_and_matricula_and_tenant_id(
+        self, employee_id: int, matricula: str, tenant_id: int
     ) -> Optional[EmployeeHolidayCalendarAssignment]:
         raise NotImplementedError

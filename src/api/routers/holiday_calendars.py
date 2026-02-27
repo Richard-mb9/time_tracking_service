@@ -1,6 +1,6 @@
 from datetime import date
 from http import HTTPStatus
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Query
 
@@ -13,6 +13,7 @@ from api.routers.dependencies import (
 )
 from api.schemas import (
     AssignEmployeeHolidayCalendarRequest,
+    AssignEmployeesHolidayCalendarRequest,
     CreateHolidayCalendarRequest,
     DefaultCreateResponse,
     DefaultResponse,
@@ -24,6 +25,25 @@ from api.schemas import (
 )
 
 router = APIRouter()
+
+
+@router.put(
+    "/{holidayCalendarId}/employees/assignments",
+    status_code=HTTPStatus.OK,
+    response_model=List[EmployeeHolidayCalendarAssignmentResponse],
+    dependencies=[require_role("holiday_calendars:edit")],
+)
+async def assign_employees_holiday_calendar(
+    holidayCalendarId: int,
+    data: AssignEmployeesHolidayCalendarRequest,
+    db_manager: DBManager,
+    current_user: CurrentUser,
+):
+    return HolidayCalendarsController(db_manager).assign_employees_holiday_calendar(
+        holiday_calendar_id=holidayCalendarId,
+        tenant_id=current_user.tenant_id,
+        data=data,
+    )
 
 
 @router.post(
@@ -136,6 +156,7 @@ async def delete_holiday_calendar(
 )
 async def find_employee_holiday_calendar_assignment(
     employeeId: int,
+    matricula: str,
     db_manager: DBManager,
     current_user: CurrentUser,
 ):
@@ -143,6 +164,7 @@ async def find_employee_holiday_calendar_assignment(
         db_manager
     ).find_employee_holiday_calendar_assignment(
         employee_id=employeeId,
+        matricula=matricula,
         tenant_id=current_user.tenant_id,
     )
 
@@ -174,11 +196,13 @@ async def assign_employee_holiday_calendar(
 )
 async def remove_employee_holiday_calendar_assignment(
     employeeId: int,
+    matricula: str,
     db_manager: DBManager,
     current_user: CurrentUser,
 ):
     HolidayCalendarsController(db_manager).remove_employee_holiday_calendar_assignment(
         employee_id=employeeId,
+        matricula=matricula,
         tenant_id=current_user.tenant_id,
     )
     return DefaultResponse(

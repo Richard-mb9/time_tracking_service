@@ -2,10 +2,13 @@
 from .assign_employee_holiday_calendar_usecase import (
     AssignEmployeeHolidayCalendarUseCase,
 )
+from .assign_employees_holiday_calendar_usecase import (
+    AssignEmployeesHolidayCalendarUseCase,
+)
 from .create_holiday_calendar_usecase import CreateHolidayCalendarUseCase
 from .delete_holiday_calendar_usecase import DeleteHolidayCalendarUseCase
-from .find_employee_holiday_calendar_assignment_by_employee_id_usecase import (
-    FindEmployeeHolidayCalendarAssignmentByEmployeeIdUseCase,
+from .find_employee_holiday_calendar_assignment_by_employee_and_matricula_usecase import (
+    FindEmployeeHolidayCalendarAssignmentByEmployeeAndMatriculaUseCase,
 )
 from .find_holiday_calendar_by_id_usecase import FindHolidayCalendarByIdUseCase
 from .list_holiday_calendars_usecase import ListHolidayCalendarsUseCase

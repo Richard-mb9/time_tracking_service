@@ -5,4 +5,5 @@ from dataclasses import dataclass
 class EmployeeHolidayCalendarAssignmentResponse:
     id: int
     employeeId: int
+    matricula: str
     holidayCalendarId: int

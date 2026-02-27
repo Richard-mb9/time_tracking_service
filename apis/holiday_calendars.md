@@ -27,7 +27,7 @@ Regras gerais:
 - quando `national=false`, `city` e `uf` sao obrigatorios (`uf` deve ser uma UF valida).
 - `holidays` aceita zero ou mais feriados.
 - Nao e permitido repetir a mesma `date` dentro de `holidays`.
-- Cada funcionario possui no maximo um calendario vinculado por tenant.
+- Cada vinculo de calendario e identificado por `employeeId` + `matricula` dentro do tenant.
 
 ---
 
@@ -294,13 +294,19 @@ Erros comuns:
 
 Descricao:
 
-- Consulta o calendario de feriados vinculado ao funcionario no tenant atual.
+- Consulta o calendario de feriados vinculado ao funcionario (`employeeId` + `matricula`) no tenant atual.
 
 Path params:
 
 | Campo        | Tipo  | Obrigatorio | Descricao         |
 | ------------ | ----- | ----------- | ----------------- |
 | `employeeId` | `int` | Sim         | ID do funcionario |
+
+Query params:
+
+| Campo | Tipo | Obrigatorio | Descricao |
+| --- | --- | --- | --- |
+| `matricula` | `string` | Sim | Matricula do funcionario |
 
 Response:
 
@@ -310,6 +316,7 @@ Response:
 {
   "id": 55,
   "employeeId": 501,
+  "matricula": "MAT-0001",
   "holidayCalendarId": 91
 }
 ```
@@ -336,6 +343,7 @@ Request body:
 
 | Campo               | Tipo  | Obrigatorio | Descricao                        |
 | ------------------- | ----- | ----------- | -------------------------------- |
+| `matricula`         | `string` | Sim      | Matricula do funcionario         |
 | `holidayCalendarId` | `int` | Sim         | ID do calendario a ser vinculado |
 
 Response:
@@ -346,6 +354,7 @@ Response:
 {
   "id": 55,
   "employeeId": 501,
+  "matricula": "MAT-0001",
   "holidayCalendarId": 91
 }
 ```
@@ -357,17 +366,79 @@ Erros comuns:
 
 ---
 
+## PUT /holiday-calendars/{holidayCalendarId}/employees/assignments
+
+Descricao:
+
+- Cria ou atualiza em lote o vinculo de um calendario para varios funcionarios.
+
+Path params:
+
+| Campo | Tipo | Obrigatorio | Descricao |
+| --- | --- | --- | --- |
+| `holidayCalendarId` | `int` | Sim | ID do calendario a ser vinculado |
+
+Request body:
+
+| Campo | Tipo | Obrigatorio | Descricao |
+| --- | --- | --- | --- |
+| `employees` | `array` | Sim | Lista de funcionarios para vinculo |
+
+Campos de `employees[]`:
+
+| Campo | Tipo | Obrigatorio | Descricao |
+| --- | --- | --- | --- |
+| `employeeId` | `int` | Sim | ID do funcionario |
+| `matricula` | `string` | Sim | Matricula do funcionario |
+
+Response:
+
+- `200 OK`
+
+```json
+[
+  {
+    "id": 55,
+    "employeeId": 501,
+    "matricula": "MAT-0001",
+    "holidayCalendarId": 91
+  },
+  {
+    "id": 56,
+    "employeeId": 502,
+    "matricula": "MAT-0002",
+    "holidayCalendarId": 91
+  }
+]
+```
+
+Erros comuns:
+
+- `400`: `employees list is required.`
+- `400`: `matricula is required.`
+- `400`: `Duplicated employeeId and matricula in employees list.`
+- `400`: `Holiday calendar does not belong to tenant.`
+- `404`: `Holiday calendar not found.`
+
+---
+
 ## DELETE /holiday-calendars/employees/{employeeId}/assignment
 
 Descricao:
 
-- Remove o vinculo de calendario de feriados do funcionario.
+- Remove o vinculo de calendario de feriados do funcionario (`employeeId` + `matricula`).
 
 Path params:
 
 | Campo        | Tipo  | Obrigatorio | Descricao         |
 | ------------ | ----- | ----------- | ----------------- |
 | `employeeId` | `int` | Sim         | ID do funcionario |
+
+Query params:
+
+| Campo | Tipo | Obrigatorio | Descricao |
+| --- | --- | --- | --- |
+| `matricula` | `string` | Sim | Matricula do funcionario |
 
 Response:
 

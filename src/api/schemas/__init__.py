@@ -1,10 +1,16 @@
 # pyright: reportUnusedImport=false
 from .assign_employee_holiday_calendar_request import AssignEmployeeHolidayCalendarRequest
+from .assign_employees_holiday_calendar_request import (
+    AssignEmployeesHolidayCalendarRequest,
+)
 from .bank_hours_balance_response import BankHoursBalanceResponse
 from .bank_hours_ledger_response import BankHoursLedgerResponse
 from .create_bank_hours_ledger_entry_request import CreateBankHoursLedgerEntryRequest
 from .create_enrollment_policy_assignment_request import (
     CreateEnrollmentPolicyAssignmentRequest,
+)
+from .create_enrollment_policy_assignments_request import (
+    CreateEnrollmentPolicyAssignmentsRequest,
 )
 from .create_holiday_calendar_request import CreateHolidayCalendarRequest
 from .create_time_adjustment_request import CreateTimeAdjustmentRequest

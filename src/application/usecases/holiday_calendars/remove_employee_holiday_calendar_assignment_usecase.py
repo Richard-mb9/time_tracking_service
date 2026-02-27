@@ -1,7 +1,7 @@
 from application.repositories import RepositoryManagerInterface
 
-from .find_employee_holiday_calendar_assignment_by_employee_id_usecase import (
-    FindEmployeeHolidayCalendarAssignmentByEmployeeIdUseCase,
+from .find_employee_holiday_calendar_assignment_by_employee_and_matricula_usecase import (
+    FindEmployeeHolidayCalendarAssignmentByEmployeeAndMatriculaUseCase,
 )
 
 
@@ -10,13 +10,16 @@ class RemoveEmployeeHolidayCalendarAssignmentUseCase:
         self.employee_holiday_calendar_assignment_repository = (
             repository_manager.employee_holiday_calendar_assignment_repository()
         )
-        self.find_assignment_by_employee_id_usecase = (
-            FindEmployeeHolidayCalendarAssignmentByEmployeeIdUseCase(repository_manager)
+        self.find_assignment_by_employee_and_matricula_usecase = (
+            FindEmployeeHolidayCalendarAssignmentByEmployeeAndMatriculaUseCase(
+                repository_manager
+            )
         )
 
-    def execute(self, employee_id: int, tenant_id: int) -> None:
-        assignment = self.find_assignment_by_employee_id_usecase.execute(
+    def execute(self, employee_id: int, matricula: str, tenant_id: int) -> None:
+        assignment = self.find_assignment_by_employee_and_matricula_usecase.execute(
             employee_id=employee_id,
+            matricula=matricula,
             tenant_id=tenant_id,
             raise_if_is_none=True,
         )

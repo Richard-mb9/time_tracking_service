@@ -2,6 +2,9 @@
 from .create_enrollment_policy_assignment_usecase import (
     CreateEnrollmentPolicyAssignmentUseCase,
 )
+from .create_enrollment_policy_assignments_usecase import (
+    CreateEnrollmentPolicyAssignmentsUseCase,
+)
 from .delete_enrollment_policy_assignment_usecase import (
     DeleteEnrollmentPolicyAssignmentUseCase,
 )

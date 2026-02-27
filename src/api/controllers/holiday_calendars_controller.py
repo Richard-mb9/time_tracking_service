@@ -3,6 +3,7 @@ from typing import List, Optional
 
 from api.schemas import (
     AssignEmployeeHolidayCalendarRequest,
+    AssignEmployeesHolidayCalendarRequest,
     CreateHolidayCalendarRequest,
     DefaultCreateResponse,
     EmployeeHolidayCalendarAssignmentResponse,
@@ -13,6 +14,8 @@ from api.schemas import (
 )
 from application.dtos import (
     AssignEmployeeHolidayCalendarDTO,
+    AssignEmployeesHolidayCalendarDTO,
+    AssignEmployeesHolidayCalendarItemDTO,
     CreateHolidayCalendarDTO,
     HolidayDTO,
     ListHolidayCalendarsDTO,
@@ -21,9 +24,10 @@ from application.dtos import (
 from application.exceptions import BadRequestError
 from application.usecases.holiday_calendars import (
     AssignEmployeeHolidayCalendarUseCase,
+    AssignEmployeesHolidayCalendarUseCase,
     CreateHolidayCalendarUseCase,
     DeleteHolidayCalendarUseCase,
-    FindEmployeeHolidayCalendarAssignmentByEmployeeIdUseCase,
+    FindEmployeeHolidayCalendarAssignmentByEmployeeAndMatriculaUseCase,
     FindHolidayCalendarByIdUseCase,
     ListHolidayCalendarsUseCase,
     RemoveEmployeeHolidayCalendarAssignmentUseCase,
@@ -146,28 +150,52 @@ class HolidayCalendarsController:
             AssignEmployeeHolidayCalendarDTO(
                 tenant_id=tenant_id,
                 employee_id=employee_id,
+                matricula=data.matricula,
                 holiday_calendar_id=data.holidayCalendarId,
             )
         )
         return self.__to_assignment_response(assignment)
 
+    def assign_employees_holiday_calendar(
+        self,
+        holiday_calendar_id: int,
+        tenant_id: int,
+        data: AssignEmployeesHolidayCalendarRequest,
+    ) -> List[EmployeeHolidayCalendarAssignmentResponse]:
+        assignments = AssignEmployeesHolidayCalendarUseCase(self.repository_manager).execute(
+            AssignEmployeesHolidayCalendarDTO(
+                tenant_id=tenant_id,
+                holiday_calendar_id=holiday_calendar_id,
+                employees=[
+                    AssignEmployeesHolidayCalendarItemDTO(
+                        employee_id=item.employeeId,
+                        matricula=item.matricula,
+                    )
+                    for item in data.employees
+                ],
+            )
+        )
+        return [self.__to_assignment_response(item) for item in assignments]
+
     def find_employee_holiday_calendar_assignment(
-        self, employee_id: int, tenant_id: int
+        self, employee_id: int, matricula: str, tenant_id: int
     ) -> EmployeeHolidayCalendarAssignmentResponse:
-        assignment = FindEmployeeHolidayCalendarAssignmentByEmployeeIdUseCase(
+        assignment = FindEmployeeHolidayCalendarAssignmentByEmployeeAndMatriculaUseCase(
             self.repository_manager
         ).execute(
             employee_id=employee_id,
+            matricula=matricula,
             tenant_id=tenant_id,
             raise_if_is_none=True,
         )
         return self.__to_assignment_response(assignment)
 
     def remove_employee_holiday_calendar_assignment(
-        self, employee_id: int, tenant_id: int
+        self, employee_id: int, matricula: str, tenant_id: int
     ) -> None:
         RemoveEmployeeHolidayCalendarAssignmentUseCase(self.repository_manager).execute(
             employee_id=employee_id,
+            matricula=matricula,
             tenant_id=tenant_id,
         )
 
@@ -203,5 +231,6 @@ class HolidayCalendarsController:
         return EmployeeHolidayCalendarAssignmentResponse(
             id=item.id,
             employeeId=item.employee_id,
+            matricula=item.matricula,
             holidayCalendarId=item.holiday_calendar_id,
         )

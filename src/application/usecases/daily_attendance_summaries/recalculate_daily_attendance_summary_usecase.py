@@ -60,6 +60,7 @@ class RecalculateDailyAttendanceSummaryUseCase:
         is_holiday = self.__is_holiday_for_employee(
             tenant_id=data.tenant_id,
             employee_id=data.employee_id,
+            matricula=data.matricula,
             work_date=data.work_date,
         )
         if is_holiday:
@@ -189,11 +190,12 @@ class RecalculateDailyAttendanceSummaryUseCase:
         return mapping[day_index]
 
     def __is_holiday_for_employee(
-        self, tenant_id: int, employee_id: int, work_date: date
+        self, tenant_id: int, employee_id: int, matricula: str, work_date: date
     ) -> bool:
         employee_calendar_assignment = (
-            self.employee_holiday_calendar_assignment_repository.find_by_employee_id_and_tenant_id(
+            self.employee_holiday_calendar_assignment_repository.find_by_employee_id_and_matricula_and_tenant_id(
                 employee_id=employee_id,
+                matricula=matricula,
                 tenant_id=tenant_id,
             )
         )

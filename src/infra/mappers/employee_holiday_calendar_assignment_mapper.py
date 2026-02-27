@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, Table
+from sqlalchemy import Column, ForeignKey, Integer, Table, Text
 from sqlalchemy.orm import relationship
 
 from domain import EmployeeHolidayCalendarAssignment
@@ -10,6 +10,7 @@ employee_holiday_calendar_assignment = Table(
     mapper_registry.metadata,
     Column("id", Integer, primary_key=True),
     Column("employee_id", Integer, nullable=False, index=True),
+    Column("matricula", Text, nullable=False, index=True),
     Column(
         "holiday_calendar_id",
         Integer,

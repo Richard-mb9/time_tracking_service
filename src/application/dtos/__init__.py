@@ -1,7 +1,15 @@
 # pyright: reportUnusedImport=false
 from .assign_employee_holiday_calendar_dto import AssignEmployeeHolidayCalendarDTO
+from .assign_employees_holiday_calendar_dto import (
+    AssignEmployeesHolidayCalendarDTO,
+    AssignEmployeesHolidayCalendarItemDTO,
+)
 from .create_bank_hours_ledger_entry_dto import CreateBankHoursLedgerEntryDTO
 from .create_enrollment_policy_assignment_dto import CreateEnrollmentPolicyAssignmentDTO
+from .create_enrollment_policy_assignments_dto import (
+    CreateEnrollmentPolicyAssignmentsDTO,
+    CreateEnrollmentPolicyAssignmentsItemDTO,
+)
 from .create_holiday_calendar_dto import CreateHolidayCalendarDTO
 from .create_time_adjustment_item_dto import CreateTimeAdjustmentItemDTO
 from .create_time_adjustment_request_dto import CreateTimeAdjustmentRequestDTO

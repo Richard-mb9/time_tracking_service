@@ -1,6 +1,6 @@
 from datetime import date
 from http import HTTPStatus
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Query
 
@@ -13,6 +13,7 @@ from api.routers.dependencies import (
 )
 from api.schemas import (
     CreateEnrollmentPolicyAssignmentRequest,
+    CreateEnrollmentPolicyAssignmentsRequest,
     DefaultCreateResponse,
     DefaultResponse,
     EnrollmentPolicyAssignmentResponse,
@@ -36,6 +37,21 @@ async def create_enrollment_policy_assignment(
 ):
     _ = current_user
     return EnrollmentPolicyAssignmentsController(db_manager).create(data)
+
+
+@router.post(
+    "/batch",
+    status_code=HTTPStatus.CREATED,
+    response_model=List[EnrollmentPolicyAssignmentResponse],
+    dependencies=[require_role("enrollment_policy_assignments:create")],
+)
+async def create_enrollment_policy_assignments(
+    data: CreateEnrollmentPolicyAssignmentsRequest,
+    db_manager: DBManager,
+    current_user: CurrentUser,
+):
+    _ = current_user
+    return EnrollmentPolicyAssignmentsController(db_manager).create_many(data)
 
 
 @router.get(

@@ -51,13 +51,14 @@ class EmployeeHolidayCalendarAssignmentRepository(
             .first()
         )
 
-    def find_by_employee_id_and_tenant_id(
-        self, employee_id: int, tenant_id: int
+    def find_by_employee_id_and_matricula_and_tenant_id(
+        self, employee_id: int, matricula: str, tenant_id: int
     ) -> Optional[EmployeeHolidayCalendarAssignment]:
         return (
             self.session.query(EmployeeHolidayCalendarAssignment)
             .join(EmployeeHolidayCalendarAssignment.holiday_calendar)
             .filter(EmployeeHolidayCalendarAssignment.employee_id == employee_id)
+            .filter(EmployeeHolidayCalendarAssignment.matricula == matricula)
             .filter(HolidayCalendar.tenant_id == tenant_id)
             .first()
         )

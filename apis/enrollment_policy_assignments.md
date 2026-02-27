@@ -55,6 +55,64 @@ Erros comuns:
 
 ---
 
+## POST /enrollment-policy-assignments/batch
+
+Descricao:
+- Cria atribuicoes em lote para varios funcionarios (`employeeId` + `matricula`) no mesmo template e periodo.
+
+Request body:
+
+| Campo | Tipo | Obrigatorio | Descricao |
+|---|---|---|---|
+| `tenantId` | `int` | Sim | Tenant das atribuicoes |
+| `templateId` | `int` | Sim | ID do template aplicado ao lote |
+| `effectiveFrom` | `date` | Sim | Inicio da vigencia |
+| `effectiveTo` | `date` | Nao | Fim da vigencia |
+| `employees` | `array` | Sim | Lista de funcionarios para vinculo |
+
+Campos de `employees[]`:
+
+| Campo | Tipo | Obrigatorio | Descricao |
+|---|---|---|---|
+| `employeeId` | `int` | Sim | ID do funcionario |
+| `matricula` | `string` | Sim | Matricula do funcionario |
+
+Response:
+- `201 Created`
+
+```json
+[
+  {
+    "id": 200,
+    "tenantId": 10,
+    "employeeId": 501,
+    "matricula": "MAT-0001",
+    "templateId": 80,
+    "effectiveFrom": "2026-01-01",
+    "effectiveTo": null
+  },
+  {
+    "id": 201,
+    "tenantId": 10,
+    "employeeId": 502,
+    "matricula": "MAT-0002",
+    "templateId": 80,
+    "effectiveFrom": "2026-01-01",
+    "effectiveTo": null
+  }
+]
+```
+
+Erros comuns:
+- `400`: `employees list is required.`
+- `400`: `Duplicated employeeId and matricula in employees list.`
+- `400`: `matricula is required.`
+- `400`: `Template does not belong to tenant.`
+- `400`: `effective_to must be greater than or equal to effective_from.`
+- `409`: `Assignment period overlaps with an existing assignment.`
+
+---
+
 ## GET /enrollment-policy-assignments/{assignmentId}
 
 Descricao:

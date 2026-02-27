@@ -1,8 +1,9 @@
 from datetime import date
-from typing import Optional
+from typing import List, Optional
 
 from api.schemas import (
     CreateEnrollmentPolicyAssignmentRequest,
+    CreateEnrollmentPolicyAssignmentsRequest,
     DefaultCreateResponse,
     EnrollmentPolicyAssignmentResponse,
     PaginatedResponse,
@@ -11,11 +12,14 @@ from api.schemas import (
 from application.exceptions import BadRequestError
 from application.dtos import (
     CreateEnrollmentPolicyAssignmentDTO,
+    CreateEnrollmentPolicyAssignmentsDTO,
+    CreateEnrollmentPolicyAssignmentsItemDTO,
     ListEnrollmentPolicyAssignmentsDTO,
     UpdateEnrollmentPolicyAssignmentDTO,
 )
 from application.usecases.enrollment_policy_assignments import (
     CreateEnrollmentPolicyAssignmentUseCase,
+    CreateEnrollmentPolicyAssignmentsUseCase,
     DeleteEnrollmentPolicyAssignmentUseCase,
     FindEnrollmentPolicyAssignmentByIdUseCase,
     ListEnrollmentPolicyAssignmentsUseCase,
@@ -42,6 +46,28 @@ class EnrollmentPolicyAssignmentsController:
             )
         )
         return DefaultCreateResponse(id=assignment.id)
+
+    def create_many(
+        self, data: CreateEnrollmentPolicyAssignmentsRequest
+    ) -> List[EnrollmentPolicyAssignmentResponse]:
+        assignments = CreateEnrollmentPolicyAssignmentsUseCase(
+            self.repository_manager
+        ).execute(
+            CreateEnrollmentPolicyAssignmentsDTO(
+                tenant_id=data.tenantId,
+                template_id=data.templateId,
+                effective_from=data.effectiveFrom,
+                effective_to=data.effectiveTo,
+                employees=[
+                    CreateEnrollmentPolicyAssignmentsItemDTO(
+                        employee_id=item.employeeId,
+                        matricula=item.matricula,
+                    )
+                    for item in data.employees
+                ],
+            )
+        )
+        return [self.__to_response(item) for item in assignments]
 
     def find_by_id(
         self, assignment_id: int, tenant_id: int
