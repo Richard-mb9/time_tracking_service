@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import List
+from datetime import date
+from typing import List, Optional
 
 from .holiday_dto import HolidayDTO
 
@@ -8,6 +9,9 @@ from .holiday_dto import HolidayDTO
 class CreateHolidayCalendarDTO:
     tenant_id: int
     name: str
-    city: str
-    uf: str
+    effective_from: date
+    effective_to: date
     holidays: List[HolidayDTO]
+    national: bool = False
+    city: Optional[str] = None
+    uf: Optional[str] = None

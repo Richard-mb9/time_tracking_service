@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Table, Text
+from sqlalchemy import Boolean, Column, Date, Integer, Table, Text
 from sqlalchemy.orm import relationship
 
 from domain import HolidayCalendar
@@ -11,8 +11,11 @@ holiday_calendar = Table(
     Column("id", Integer, primary_key=True),
     Column("tenant_id", Integer, nullable=False, index=True),
     Column("name", Text, nullable=False),
-    Column("city", Text, nullable=False),
-    Column("uf", Text, nullable=False),
+    Column("city", Text, nullable=True),
+    Column("uf", Text, nullable=True),
+    Column("effective_from", Date, nullable=False),
+    Column("effective_to", Date, nullable=False),
+    Column("national", Boolean, nullable=False, default=False),
 )
 
 mapper_registry.map_imperatively(

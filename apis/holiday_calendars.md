@@ -19,8 +19,12 @@ Observacoes de tenant:
 Regras gerais:
 
 - `name` e obrigatorio e unico por tenant.
-- `city` e obrigatorio.
-- `uf` e obrigatorio e deve ser um valor valido de UF.
+- `effectiveFrom` e obrigatorio.
+- `effectiveTo` e obrigatorio.
+- `effectiveTo` deve ser maior ou igual a `effectiveFrom`.
+- `national` e opcional (default `false`).
+- quando `national=true`, `city` e `uf` devem ser nulos.
+- quando `national=false`, `city` e `uf` sao obrigatorios (`uf` deve ser uma UF valida).
 - `holidays` aceita zero ou mais feriados.
 - Nao e permitido repetir a mesma `date` dentro de `holidays`.
 - Cada funcionario possui no maximo um calendario vinculado por tenant.
@@ -35,13 +39,16 @@ Descricao:
 
 Request body:
 
-| Campo      | Tipo          | Obrigatorio | Descricao                        |
-| ---------- | ------------- | ----------- | -------------------------------- |
-| `tenantId` | `int`         | Sim         | Tenant dono do calendario        |
-| `name`     | `string`      | Sim         | Nome do calendario               |
-| `city`     | `string`      | Sim         | Cidade de referencia             |
-| `uf`       | `string` enum | Sim         | UF (`AC`, `AL`, `AP`, ..., `TO`) |
-| `holidays` | `array`       | Sim         | Lista de feriados                |
+| Campo           | Tipo          | Obrigatorio           | Descricao                                                        |
+| --------------- | ------------- | --------------------- | ---------------------------------------------------------------- |
+| `tenantId`      | `int`         | Sim                   | Tenant dono do calendario                                        |
+| `name`          | `string`      | Sim                   | Nome do calendario                                               |
+| `effectiveFrom` | `date`        | Sim                   | Inicio de vigencia do calendario                                 |
+| `effectiveTo`   | `date`        | Sim                   | Fim de vigencia do calendario                                    |
+| `national`      | `bool`        | Nao (default `false`) | Indica calendario nacional                                       |
+| `city`          | `string`      | Condicional           | Obrigatorio quando `national=false`; nulo quando `national=true` |
+| `uf`            | `string` enum | Condicional           | Obrigatorio quando `national=false`; nulo quando `national=true` |
+| `holidays`      | `array`       | Sim                   | Lista de feriados                                                |
 
 Campos de `holidays[]`:
 
@@ -56,6 +63,9 @@ Exemplo request:
 {
   "tenantId": 10,
   "name": "Calendario Sao Paulo",
+  "effectiveFrom": "2026-01-01",
+  "effectiveTo": "2026-12-31",
+  "national": false,
   "city": "Sao Paulo",
   "uf": "SP",
   "holidays": [
@@ -84,7 +94,9 @@ Response:
 Erros comuns:
 
 - `400`: `Holiday calendar name is required.`
-- `400`: `Holiday calendar city is required.`
+- `400`: `effective_to must be greater than or equal to effective_from.`
+- `400`: `city and uf must be null when national is true.`
+- `400`: `Holiday calendar city is required when national is false.`
 - `400`: `Holiday name is required.`
 - `400`: `Duplicated holiday date in holiday calendar.`
 - `409`: `Holiday calendar name already exists for this tenant.`
@@ -112,6 +124,9 @@ Response:
   "id": 91,
   "tenantId": 10,
   "name": "Calendario Sao Paulo",
+  "effectiveFrom": "2026-01-01",
+  "effectiveTo": "2026-12-31",
+  "national": false,
   "city": "Sao Paulo",
   "uf": "SP",
   "holidays": [
@@ -144,14 +159,17 @@ Descricao:
 
 Query params:
 
-| Campo      | Tipo          | Obrigatorio | Default | Descricao                                         |
-| ---------- | ------------- | ----------- | ------- | ------------------------------------------------- |
-| `page`     | `int`         | Nao         | `0`     | Pagina (base 0)                                   |
-| `perPage`  | `int`         | Nao         | `20`    | Itens por pagina (`1..1000`)                      |
-| `name`     | `string`      | Nao         | -       | Filtro por nome (`ILIKE`)                         |
-| `city`     | `string`      | Nao         | -       | Filtro por cidade (`ILIKE`)                       |
-| `uf`       | `string` enum | Nao         | -       | Filtro por UF                                     |
-| `tenantId` | `int`         | Nao         | -       | Tenant opcional para usuario de tenant de sistema |
+| Campo           | Tipo          | Obrigatorio | Default | Descricao                                         |
+| --------------- | ------------- | ----------- | ------- | ------------------------------------------------- |
+| `page`          | `int`         | Nao         | `0`     | Pagina (base 0)                                   |
+| `perPage`       | `int`         | Nao         | `20`    | Itens por pagina (`1..1000`)                      |
+| `name`          | `string`      | Nao         | -       | Filtro por nome (`ILIKE`)                         |
+| `city`          | `string`      | Nao         | -       | Filtro por cidade (`ILIKE`)                       |
+| `uf`            | `string` enum | Nao         | -       | Filtro por UF                                     |
+| `effectiveFrom` | `date`        | Nao         | -       | Filtro por `effectiveFrom` (igualdade)            |
+| `effectiveTo`   | `date`        | Nao         | -       | Filtro por `effectiveTo` (igualdade)              |
+| `national`      | `bool`        | Nao         | -       | Filtro por calendario nacional                    |
+| `tenantId`      | `int`         | Nao         | -       | Tenant opcional para usuario de tenant de sistema |
 
 Response:
 
@@ -164,6 +182,9 @@ Response:
       "id": 91,
       "tenantId": 10,
       "name": "Calendario Sao Paulo",
+      "effectiveFrom": "2026-01-01",
+      "effectiveTo": "2026-12-31",
+      "national": false,
       "city": "Sao Paulo",
       "uf": "SP",
       "holidays": [
@@ -196,12 +217,15 @@ Path params:
 
 Request body:
 
-| Campo      | Tipo          | Obrigatorio | Descricao                                                 |
-| ---------- | ------------- | ----------- | --------------------------------------------------------- |
-| `name`     | `string`      | Nao         | Novo nome                                                 |
-| `city`     | `string`      | Nao         | Nova cidade                                               |
-| `uf`       | `string` enum | Nao         | Nova UF                                                   |
-| `holidays` | `array`       | Nao         | Nova lista completa de feriados (substitui a lista atual) |
+| Campo           | Tipo          | Obrigatorio | Descricao                                                         |
+| --------------- | ------------- | ----------- | ----------------------------------------------------------------- |
+| `name`          | `string`      | Nao         | Novo nome                                                         |
+| `effectiveFrom` | `date`        | Nao         | Novo inicio de vigencia                                           |
+| `effectiveTo`   | `date`        | Nao         | Novo fim de vigencia                                              |
+| `national`      | `bool`        | Nao         | Novo tipo de abrangencia                                          |
+| `city`          | `string`      | Nao         | Nova cidade (obrigatorio no estado final quando `national=false`) |
+| `uf`            | `string` enum | Nao         | Nova UF (obrigatorio no estado final quando `national=false`)     |
+| `holidays`      | `array`       | Nao         | Nova lista completa de feriados (substitui a lista atual)         |
 
 Response:
 
@@ -212,6 +236,9 @@ Response:
   "id": 91,
   "tenantId": 10,
   "name": "Calendario Sao Paulo Atualizado",
+  "effectiveFrom": "2026-01-01",
+  "effectiveTo": "2026-12-31",
+  "national": false,
   "city": "Sao Paulo",
   "uf": "SP",
   "holidays": [
@@ -227,6 +254,8 @@ Response:
 Erros comuns:
 
 - `400`: `Holiday calendar does not belong to tenant.`
+- `400`: `effective_to must be greater than or equal to effective_from.`
+- `400`: `city and uf must be null when national is true.`
 - `400`: `Duplicated holiday date in holiday calendar.`
 - `409`: `Holiday calendar name already exists for this tenant.`
 

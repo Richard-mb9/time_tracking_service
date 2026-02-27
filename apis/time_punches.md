@@ -21,6 +21,7 @@ Regras gerais:
   - `OUT` exige jornada aberta.
 - Intervalos passam a ser representados por pares `OUT` (saida) e `IN` (retorno).
 - Se `allowMultiEnrollmentPerDay=false`, bloqueia batidas em outra matricula do mesmo funcionario no mesmo dia.
+- O funcionario so pode registrar batida se tiver uma atribuicao de template de jornada vigente na data.
 - Ao criar/remover batida, o sistema reapura resumo diario automaticamente.
 
 ---
@@ -68,6 +69,7 @@ Response:
 
 Erros comuns:
 - `400`: `matricula is required.`
+- `400`: `Employee does not have a work policy assignment for this date.`
 - `400`: conflitos de sequencia (`Invalid sequence: ...`).
 - `400`: `Employee cannot register punches in multiple matriculas in the same day.`
 - `409`: `There is already a punch with the same date, time and type.`

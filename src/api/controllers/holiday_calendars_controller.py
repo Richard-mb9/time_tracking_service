@@ -1,3 +1,4 @@
+from datetime import date
 from typing import List, Optional
 
 from api.schemas import (
@@ -42,8 +43,11 @@ class HolidayCalendarsController:
             CreateHolidayCalendarDTO(
                 tenant_id=data.tenantId,
                 name=data.name,
+                effective_from=data.effectiveFrom,
+                effective_to=data.effectiveTo,
+                national=data.national,
                 city=data.city,
-                uf=data.uf.value,
+                uf=data.uf.value if data.uf is not None else None,
                 holidays=[
                     HolidayDTO(
                         date=holiday.date,
@@ -72,6 +76,9 @@ class HolidayCalendarsController:
         name: Optional[str],
         city: Optional[str],
         uf: Optional[str],
+        effective_from: Optional[date],
+        effective_to: Optional[date],
+        national: Optional[bool],
     ) -> PaginatedResponse[HolidayCalendarResponse]:
         result = ListHolidayCalendarsUseCase(self.repository_manager).execute(
             ListHolidayCalendarsDTO(
@@ -81,6 +88,9 @@ class HolidayCalendarsController:
                 name=name,
                 city=city,
                 uf=uf,
+                effective_from=effective_from,
+                effective_to=effective_to,
+                national=national,
             )
         )
         return PaginatedResponse(
@@ -102,6 +112,9 @@ class HolidayCalendarsController:
                 name=data.name,
                 city=data.city,
                 uf=data.uf.value if data.uf is not None else None,
+                effective_from=data.effectiveFrom,
+                effective_to=data.effectiveTo,
+                national=data.national,
                 holidays=(
                     [
                         HolidayDTO(
@@ -163,6 +176,9 @@ class HolidayCalendarsController:
             id=item.id,
             tenantId=item.tenant_id,
             name=item.name,
+            effectiveFrom=item.effective_from,
+            effectiveTo=item.effective_to,
+            national=item.national,
             city=item.city,
             uf=item.uf,
             holidays=[

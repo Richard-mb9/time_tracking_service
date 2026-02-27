@@ -1,3 +1,4 @@
+from datetime import date
 from http import HTTPStatus
 from typing import Optional
 
@@ -71,6 +72,9 @@ async def list_holiday_calendars(
     name: Optional[str] = None,
     city: Optional[str] = None,
     uf: Optional[UfRequestEnum] = None,
+    effectiveFrom: Optional[date] = None,
+    effectiveTo: Optional[date] = None,
+    national: Optional[bool] = None,
     tenantId: Optional[int] = None,
 ):
     tenant_id = resolve_tenant_id(current_user, tenantId)
@@ -81,6 +85,9 @@ async def list_holiday_calendars(
         name=name,
         city=city,
         uf=uf.value if uf is not None else None,
+        effective_from=effectiveFrom,
+        effective_to=effectiveTo,
+        national=national,
     )
 
 

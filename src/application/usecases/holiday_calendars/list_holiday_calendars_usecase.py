@@ -15,5 +15,8 @@ class ListHolidayCalendarsUseCase:
             name=data.name,
             city=data.city,
             uf=data.uf,
+            effective_from=data.effective_from,
+            effective_to=data.effective_to,
+            national=data.national,
         )
         return PaginatedResult(data=result.data, count=result.total_count, page=data.page)

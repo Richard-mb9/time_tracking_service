@@ -1,4 +1,5 @@
-from typing import List
+from datetime import date
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -9,6 +10,9 @@ from .holiday_request import HolidayRequest
 class CreateHolidayCalendarRequest(BaseModel):
     tenantId: int
     name: str
-    city: str
-    uf: UfRequestEnum
+    effectiveFrom: date
+    effectiveTo: date
+    national: bool = False
+    city: Optional[str] = None
+    uf: Optional[UfRequestEnum] = None
     holidays: List[HolidayRequest]

@@ -7,6 +7,9 @@ from application.repositories import RepositoryManagerInterface
 from application.usecases.daily_attendance_summaries import (
     RecalculateDailyAttendanceSummaryUseCase,
 )
+from application.usecases.enrollment_policy_assignments import (
+    FindCurrentPolicyAssignmentByEnrollmentAndDateUseCase,
+)
 from domain import TimePunch
 from domain.enums import PunchType
 
@@ -17,11 +20,22 @@ class CreateTimePunchUseCase:
         self.recalculate_daily_summary = RecalculateDailyAttendanceSummaryUseCase(
             repository_manager
         )
+        self.find_assignment_by_date = (
+            FindCurrentPolicyAssignmentByEnrollmentAndDateUseCase(repository_manager)
+        )
 
     def execute(self, data: CreateTimePunchDTO) -> TimePunch:
         matricula = data.matricula.strip()
         if len(matricula) == 0:
             raise BadRequestError("matricula is required.")
+
+        assignment = self.find_assignment_by_date.execute(
+            employee_id=data.employee_id,
+            matricula=matricula,
+            reference_date=data.punched_at.date(),
+        )
+        if assignment is None:
+            raise BadRequestError("Employee does not have a work policy assignment for this date.")
 
         duplicate = self.time_punch_repository.find_duplicate(
             employee_id=data.employee_id,

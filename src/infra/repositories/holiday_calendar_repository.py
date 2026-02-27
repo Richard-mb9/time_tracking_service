@@ -61,6 +61,9 @@ class HolidayCalendarRepository(HolidayCalendarRepositoryInterface):
         name: Optional[str] = None,
         city: Optional[str] = None,
         uf: Optional[str] = None,
+        effective_from: Optional[date] = None,
+        effective_to: Optional[date] = None,
+        national: Optional[bool] = None,
     ) -> DBPaginatedResult[HolidayCalendar]:
         query = self.session.query(HolidayCalendar)
 
@@ -75,6 +78,15 @@ class HolidayCalendarRepository(HolidayCalendarRepositoryInterface):
 
         if uf is not None:
             query = query.filter(HolidayCalendar.uf == uf)
+
+        if effective_from is not None:
+            query = query.filter(HolidayCalendar.effective_from == effective_from)
+
+        if effective_to is not None:
+            query = query.filter(HolidayCalendar.effective_to == effective_to)
+
+        if national is not None:
+            query = query.filter(HolidayCalendar.national == national)
 
         total = query.count()
         data = (

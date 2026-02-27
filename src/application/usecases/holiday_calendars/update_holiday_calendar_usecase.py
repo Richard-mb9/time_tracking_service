@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Tuple
 
 from application.dtos import HolidayDTO, UpdateHolidayCalendarDTO
 from application.exceptions import BadRequestError, ConflictError
@@ -40,17 +40,56 @@ class UpdateHolidayCalendarUseCase:
                 raise ConflictError("Holiday calendar name already exists for this tenant.")
             data_to_update["name"] = name
 
-        if data.city is not None:
-            city = data.city.strip()
-            if len(city) == 0:
-                raise BadRequestError("Holiday calendar city is required.")
-            data_to_update["city"] = city
+        candidate_effective_from = (
+            data.effective_from
+            if data.effective_from is not None
+            else holiday_calendar.effective_from
+        )
+        candidate_effective_to = (
+            data.effective_to
+            if data.effective_to is not None
+            else holiday_calendar.effective_to
+        )
+        if candidate_effective_to < candidate_effective_from:
+            raise BadRequestError("effective_to must be greater than or equal to effective_from.")
 
-        if data.uf is not None:
-            uf = data.uf.strip().upper()
-            if len(uf) == 0:
-                raise BadRequestError("Holiday calendar uf is required.")
-            data_to_update["uf"] = uf
+        candidate_national = (
+            data.national if data.national is not None else holiday_calendar.national
+        )
+        normalized_city: Optional[str] = None
+        normalized_uf: Optional[str] = None
+        if candidate_national is True:
+            self.__normalize_location_fields(
+                national=True,
+                city=data.city,
+                uf=data.uf,
+            )
+        else:
+            candidate_city = data.city if data.city is not None else holiday_calendar.city
+            candidate_uf = data.uf if data.uf is not None else holiday_calendar.uf
+            normalized_city, normalized_uf = self.__normalize_location_fields(
+                national=False,
+                city=candidate_city,
+                uf=candidate_uf,
+            )
+
+        if data.effective_from is not None:
+            data_to_update["effective_from"] = data.effective_from
+
+        if data.effective_to is not None:
+            data_to_update["effective_to"] = data.effective_to
+
+        if data.national is not None:
+            data_to_update["national"] = data.national
+
+        if candidate_national is True:
+            data_to_update["city"] = None
+            data_to_update["uf"] = None
+        else:
+            if data.city is not None:
+                data_to_update["city"] = normalized_city
+            if data.uf is not None:
+                data_to_update["uf"] = normalized_uf
 
         if data.holidays is not None:
             self.__validate_holidays(data.holidays)
@@ -85,3 +124,23 @@ class UpdateHolidayCalendarUseCase:
                 raise BadRequestError("Duplicated holiday date in holiday calendar.")
 
             used_dates.add(holiday.date)
+
+    def __normalize_location_fields(
+        self,
+        national: bool,
+        city: Optional[str],
+        uf: Optional[str],
+    ) -> Tuple[Optional[str], Optional[str]]:
+        normalized_city = city.strip() if city is not None else None
+        normalized_uf = uf.strip().upper() if uf is not None else None
+
+        if national is True:
+            if city is not None or uf is not None:
+                raise BadRequestError("city and uf must be null when national is true.")
+            return None, None
+
+        if normalized_city is None or len(normalized_city) == 0:
+            raise BadRequestError("Holiday calendar city is required when national is false.")
+        if normalized_uf is None or len(normalized_uf) == 0:
+            raise BadRequestError("Holiday calendar uf is required when national is false.")
+        return normalized_city, normalized_uf

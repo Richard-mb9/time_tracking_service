@@ -51,11 +51,11 @@ Foi criado o router `holiday-calendars` com CRUD completo e vinculo de funcionar
 ### Schemas principais
 
 - `CreateHolidayCalendarRequest`
-  - `tenantId`, `name`, `city`, `uf`, `holidays[]`
+  - `tenantId`, `name`, `effectiveFrom`, `effectiveTo`, `national`, `city?`, `uf?`, `holidays[]`
 - `UpdateHolidayCalendarRequest`
-  - `name?`, `city?`, `uf?`, `holidays?`
+  - `name?`, `effectiveFrom?`, `effectiveTo?`, `national?`, `city?`, `uf?`, `holidays?`
 - `HolidayCalendarResponse`
-  - `id`, `tenantId`, `name`, `city`, `uf`, `holidays[]`
+  - `id`, `tenantId`, `name`, `effectiveFrom`, `effectiveTo`, `national`, `city`, `uf`, `holidays[]`
 - `AssignEmployeeHolidayCalendarRequest`
   - `holidayCalendarId`
 - `EmployeeHolidayCalendarAssignmentResponse`
@@ -68,6 +68,17 @@ Foi criado o router `holiday-calendars` com CRUD completo e vinculo de funcionar
 - `holiday_calendars:edit`
 - `holiday_calendars:delete`
 - `holiday_calendars:*`
+
+### Regras novas de calendario
+
+- `effectiveFrom` e `effectiveTo` sao obrigatorios
+- `effectiveTo >= effectiveFrom`
+- se `national=true`, `city` e `uf` devem ser `null`
+- se `national=false`, `city` e `uf` sao obrigatorios
+- listagem de calendarios ganhou filtros opcionais por:
+  - `effectiveFrom`
+  - `effectiveTo`
+  - `national`
 
 ## 3) Mudanca na regra de calculo diario (daily attendance)
 
@@ -136,6 +147,7 @@ Foi aplicado o ajuste solicitado para restringir os tipos de batida:
 - enums da API e dominio foram atualizados para aceitar apenas `IN` e `OUT`
 - validacao de sequencia de batidas foi simplificada para alternancia `IN` -> `OUT`
 - validacao de sequencia final em aplicacao de ajustes de ponto foi reativada com a regra `IN`/`OUT`
+- criacao de batida agora valida se existe atribuicao de template de jornada vigente para o funcionario na data
 
 ### Impacto no calculo diario
 
@@ -146,3 +158,4 @@ Foi aplicado o ajuste solicitado para restringir os tipos de batida:
 
 - `apis/time_punches.md` atualizado com enums e regras novas
 - `apis/time_adjustment_requests.md` atualizado para `proposedPunchType` com `IN`/`OUT`
+- `POST /time-punches` agora retorna erro quando nao existe template de jornada vigente para a data
