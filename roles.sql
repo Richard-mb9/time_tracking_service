@@ -80,6 +80,26 @@ WITH required_permissions (name, description) AS (
             'Total Acesso a Batidas de Ponto'
         ),
         (
+            'holiday_calendars:create',
+            'Criar Calendarios de Feriados'
+        ),
+        (
+            'holiday_calendars:read',
+            'Visualizar Calendarios de Feriados'
+        ),
+        (
+            'holiday_calendars:edit',
+            'Editar Calendarios de Feriados'
+        ),
+        (
+            'holiday_calendars:delete',
+            'Remover Calendarios de Feriados'
+        ),
+        (
+            'holiday_calendars:*',
+            'Total Acesso a Calendarios de Feriados'
+        ),
+        (
             'work_policy_templates:create',
             'Criar Templates de Jornada'
         ),

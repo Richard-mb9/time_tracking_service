@@ -2,7 +2,7 @@ from typing import Any, Dict, Optional
 
 from application.repositories import WorkPolicyTemplateRepositoryInterface
 from application.repositories.types import DBPaginatedResult
-from domain import WorkPolicyTemplate
+from domain import WorkPolicyTemplate, WorkWeekDay
 from infra.database_manager import DatabaseManagerConnection
 
 
@@ -14,7 +14,7 @@ class WorkPolicyTemplateRepository(WorkPolicyTemplateRepositoryInterface):
         self.session.add(template)
         self.session.commit()
         self.session.refresh(template)
-        return template
+        return self.__normalize_template(template)
 
     def update(
         self, template_id: int, data: Dict[str, Any]
@@ -28,7 +28,7 @@ class WorkPolicyTemplateRepository(WorkPolicyTemplateRepositoryInterface):
 
         self.session.commit()
         self.session.refresh(template)
-        return template
+        return self.__normalize_template(template)
 
     def delete(self, template_id: int) -> None:
         template = self.find_by_id(template_id)
@@ -38,19 +38,21 @@ class WorkPolicyTemplateRepository(WorkPolicyTemplateRepositoryInterface):
         self.session.commit()
 
     def find_by_id(self, template_id: int) -> Optional[WorkPolicyTemplate]:
-        return (
+        template = (
             self.session.query(WorkPolicyTemplate)
             .filter(WorkPolicyTemplate.id == template_id)
             .first()
         )
+        return self.__normalize_template(template) if template is not None else None
 
     def find_by_name(self, tenant_id: int, name: str) -> Optional[WorkPolicyTemplate]:
-        return (
+        template = (
             self.session.query(WorkPolicyTemplate)
             .filter(WorkPolicyTemplate.tenant_id == tenant_id)
             .filter(WorkPolicyTemplate.name == name)
             .first()
         )
+        return self.__normalize_template(template) if template is not None else None
 
     def find_all(
         self,
@@ -74,4 +76,13 @@ class WorkPolicyTemplateRepository(WorkPolicyTemplateRepositoryInterface):
             .limit(per_page)
             .all()
         )
-        return DBPaginatedResult(data=data, total_count=total)
+        return DBPaginatedResult(
+            data=[self.__normalize_template(item) for item in data],
+            total_count=total,
+        )
+
+    def __normalize_template(self, template: WorkPolicyTemplate) -> WorkPolicyTemplate:
+        for policy in template.work_day_policies:
+            if isinstance(policy.week_day, str):
+                policy.week_day = WorkWeekDay(policy.week_day)
+        return template

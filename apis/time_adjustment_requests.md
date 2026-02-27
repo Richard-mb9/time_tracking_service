@@ -53,7 +53,7 @@ Campos de cada item (`items[]`):
 
 | Campo | Tipo | Obrigatorio | Descricao |
 |---|---|---|---|
-| `proposedPunchType` | `string` enum | Condicional | Tipo proposto (`IN`, `OUT`, `BREAK_START`, `BREAK_END`) |
+| `proposedPunchType` | `string` enum | Condicional | Tipo proposto (`IN`, `OUT`) |
 | `proposedPunchedAt` | `datetime` | Condicional | Data/hora proposta |
 | `originalPunchId` | `int` | Condicional | Batida original (edicao/remocao) |
 | `note` | `string` | Nao | Observacao do item |
@@ -248,6 +248,7 @@ Comportamento:
 - Se `originalPunchId` + `proposed*`: atualiza batida existente.
 - Se `originalPunchId` sem `proposed*`: remove batida existente.
 - Sem `originalPunchId` + `proposed*`: cria nova batida.
+- A sequencia final das batidas na data deve continuar valida com alternancia `IN` -> `OUT`.
 - Atualiza status para `APPLIED`.
 - Reprocessa resumo diario para todas as datas impactadas.
 

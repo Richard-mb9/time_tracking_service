@@ -4,9 +4,13 @@ from .bank_hours_ledger_repository_interface import BankHoursLedgerRepositoryInt
 from .daily_attendance_summary_repository_interface import (
     DailyAttendanceSummaryRepositoryInterface,
 )
+from .employee_holiday_calendar_assignment_repository_interface import (
+    EmployeeHolidayCalendarAssignmentRepositoryInterface,
+)
 from .enrollment_policy_assignment_repository_interface import (
     EnrollmentPolicyAssignmentRepositoryInterface,
 )
+from .holiday_calendar_repository_interface import HolidayCalendarRepositoryInterface
 from .time_adjustment_item_repository_interface import TimeAdjustmentItemRepositoryInterface
 from .time_adjustment_request_repository_interface import (
     TimeAdjustmentRequestRepositoryInterface,
@@ -46,4 +50,14 @@ class RepositoryManagerInterface(ABC):
 
     @abstractmethod
     def bank_hours_ledger_repository(self) -> BankHoursLedgerRepositoryInterface:
+        raise NotImplementedError
+
+    @abstractmethod
+    def holiday_calendar_repository(self) -> HolidayCalendarRepositoryInterface:
+        raise NotImplementedError
+
+    @abstractmethod
+    def employee_holiday_calendar_assignment_repository(
+        self,
+    ) -> EmployeeHolidayCalendarAssignmentRepositoryInterface:
         raise NotImplementedError

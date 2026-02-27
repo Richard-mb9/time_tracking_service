@@ -4,8 +4,6 @@ from enum import Enum
 class PunchType(str, Enum):
     IN = "IN"
     OUT = "OUT"
-    BREAK_START = "BREAK_START"
-    BREAK_END = "BREAK_END"
 
 
 class TimeAdjustmentType(str, Enum):
@@ -33,3 +31,13 @@ class BankHoursSource(str, Enum):
     DAILY_APURATION = "DAILY_APURATION"
     MANUAL_ADJUST = "MANUAL_ADJUST"
     ADJUSTMENT_REQUEST = "ADJUSTMENT_REQUEST"
+
+
+class WorkWeekDay(str, Enum):
+    MONDAY = "MONDAY"
+    TUESDAY = "TUESDAY"
+    WEDNESDAY = "WEDNESDAY"
+    THURSDAY = "THURSDAY"
+    FRIDAY = "FRIDAY"
+    SATURDAY = "SATURDAY"
+    SUNDAY = "SUNDAY"

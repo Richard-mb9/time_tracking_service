@@ -1,4 +1,13 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import List
+
+
+@dataclass
+class WorkDayPolicyResponse:
+    id: int
+    weekDay: str
+    dailyWorkMinutes: int
+    breakMinutes: int
 
 
 @dataclass
@@ -6,5 +15,4 @@ class WorkPolicyTemplateResponse:
     id: int
     tenantId: int
     name: str
-    dailyWorkMinutes: int
-    breakMinutes: int
+    workDayPolicies: List[WorkDayPolicyResponse] = field(default_factory=list)

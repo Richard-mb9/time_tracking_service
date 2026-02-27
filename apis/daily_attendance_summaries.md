@@ -15,10 +15,18 @@ Regras gerais:
 - Resumo diario e materializado por `employeeId` + `matricula` + data.
 - Recalculo considera:
   - batidas do dia,
+  - apenas eventos `IN` e `OUT`,
   - template vigente na data,
+  - jornada esperada para o dia da semana (`workDayPolicies`),
+  - calendario de feriados vinculado ao funcionario,
   - pendencias de ajuste.
 - Status possiveis: `OK`, `INCOMPLETE`, `PENDING_ADJUSTMENT`, `NO_POLICY`.
 - Quando status `OK`, o sistema pode gerar/atualizar lancamento automatico de banco de horas (`DAILY_APURATION`).
+- Se nao existir jornada configurada no dia da semana, `expectedMinutes` sera `0`.
+- Se a data for feriado no calendario vinculado ao funcionario, `expectedMinutes` sera `0`.
+- Se `expectedMinutes` for `0` e houver trabalho no dia, o saldo vira banco de horas positivo.
+- Se `expectedMinutes` for `0` e nao houver batidas, o status final pode ser `OK` (dia sem obrigacao de jornada).
+- `breakMinutes` passa a ser calculado como soma dos intervalos entre um `OUT` e o proximo `IN` no mesmo dia.
 
 ---
 
@@ -56,10 +64,10 @@ Response:
   "employeeId": 501,
   "matricula": "MAT-0001",
   "workDate": "2026-02-25",
-  "expectedMinutes": 480,
-  "workedMinutes": 485,
-  "breakMinutes": 60,
-  "overtimeMinutes": 5,
+  "expectedMinutes": 0,
+  "workedMinutes": 240,
+  "breakMinutes": 20,
+  "overtimeMinutes": 240,
   "deficitMinutes": 0,
   "status": "OK"
 }

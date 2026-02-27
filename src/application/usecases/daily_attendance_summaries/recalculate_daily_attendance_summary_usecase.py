@@ -6,7 +6,13 @@ from application.repositories import RepositoryManagerInterface
 from application.usecases.enrollment_policy_assignments import (
     FindCurrentPolicyAssignmentByEnrollmentAndDateUseCase,
 )
-from domain import BankHoursLedger, DailyAttendanceSummary, TimePunch
+from domain import (
+    BankHoursLedger,
+    DailyAttendanceSummary,
+    EnrollmentPolicyAssignment,
+    TimePunch,
+    WorkWeekDay,
+)
 from domain.enums import (
     BankHoursSource,
     DailyAttendanceStatus,
@@ -25,6 +31,10 @@ class RecalculateDailyAttendanceSummaryUseCase:
             repository_manager.time_adjustment_request_repository()
         )
         self.bank_hours_ledger_repository = repository_manager.bank_hours_ledger_repository()
+        self.holiday_calendar_repository = repository_manager.holiday_calendar_repository()
+        self.employee_holiday_calendar_assignment_repository = (
+            repository_manager.employee_holiday_calendar_assignment_repository()
+        )
         self.find_assignment_by_date = (
             FindCurrentPolicyAssignmentByEnrollmentAndDateUseCase(repository_manager)
         )
@@ -43,9 +53,18 @@ class RecalculateDailyAttendanceSummaryUseCase:
         )
         worked_minutes, break_minutes, is_complete = self.__calculate_minutes(punches)
 
-        expected_minutes = (
-            assignment.template.daily_work_minutes if assignment is not None else 0
+        expected_minutes = self.__resolve_expected_minutes(
+            assignment=assignment,
+            work_date=data.work_date,
         )
+        is_holiday = self.__is_holiday_for_employee(
+            tenant_id=data.tenant_id,
+            employee_id=data.employee_id,
+            work_date=data.work_date,
+        )
+        if is_holiday:
+            expected_minutes = 0
+
         has_pending_adjustment = self.__has_pending_adjustment(
             tenant_id=data.tenant_id,
             employee_id=data.employee_id,
@@ -57,6 +76,7 @@ class RecalculateDailyAttendanceSummaryUseCase:
             has_pending_adjustment=has_pending_adjustment,
             is_complete=is_complete,
             punches_count=len(punches),
+            expected_minutes=expected_minutes,
         )
 
         overtime_minutes = 0
@@ -126,16 +146,64 @@ class RecalculateDailyAttendanceSummaryUseCase:
         has_pending_adjustment: bool,
         is_complete: bool,
         punches_count: int,
+        expected_minutes: int,
     ) -> DailyAttendanceStatus:
         if not assignment_exists:
             return DailyAttendanceStatus.NO_POLICY
         if has_pending_adjustment:
             return DailyAttendanceStatus.PENDING_ADJUSTMENT
-        if not is_complete:
-            return DailyAttendanceStatus.INCOMPLETE
+        if punches_count == 0 and expected_minutes == 0:
+            return DailyAttendanceStatus.OK
         if punches_count == 0:
             return DailyAttendanceStatus.INCOMPLETE
+        if not is_complete:
+            return DailyAttendanceStatus.INCOMPLETE
         return DailyAttendanceStatus.OK
+
+    def __resolve_expected_minutes(
+        self,
+        assignment: Optional[EnrollmentPolicyAssignment],
+        work_date: date,
+    ) -> int:
+        if assignment is None:
+            return 0
+        if assignment.template is None:
+            return 0
+        week_day = self.__to_week_day(work_date)
+        policy = assignment.template.find_work_day_policy(week_day)
+        if policy is None:
+            return 0
+        return policy.daily_work_minutes
+
+    def __to_week_day(self, work_date: date) -> WorkWeekDay:
+        day_index = work_date.weekday()
+        mapping = {
+            0: WorkWeekDay.MONDAY,
+            1: WorkWeekDay.TUESDAY,
+            2: WorkWeekDay.WEDNESDAY,
+            3: WorkWeekDay.THURSDAY,
+            4: WorkWeekDay.FRIDAY,
+            5: WorkWeekDay.SATURDAY,
+            6: WorkWeekDay.SUNDAY,
+        }
+        return mapping[day_index]
+
+    def __is_holiday_for_employee(
+        self, tenant_id: int, employee_id: int, work_date: date
+    ) -> bool:
+        employee_calendar_assignment = (
+            self.employee_holiday_calendar_assignment_repository.find_by_employee_id_and_tenant_id(
+                employee_id=employee_id,
+                tenant_id=tenant_id,
+            )
+        )
+        if employee_calendar_assignment is None:
+            return False
+
+        return self.holiday_calendar_repository.has_holiday_on_date(
+            holiday_calendar_id=employee_calendar_assignment.holiday_calendar_id,
+            holiday_date=work_date,
+        )
 
     def __calculate_minutes(self, punches: List[TimePunch]) -> Tuple[int, int, bool]:
         ordered = sorted(punches, key=lambda punch: punch.punched_at)
@@ -144,38 +212,35 @@ class RecalculateDailyAttendanceSummaryUseCase:
         break_minutes = 0
 
         open_interval_start: Optional[datetime] = None
-        open_break_start: Optional[datetime] = None
+        last_out_at: Optional[datetime] = None
 
         for punch in ordered:
-            if punch.punch_type == PunchType.IN:
-                if open_interval_start is not None or open_break_start is not None:
+            punch_type = (
+                PunchType(punch.punch_type)
+                if isinstance(punch.punch_type, str)
+                else punch.punch_type
+            )
+
+            if punch_type not in [PunchType.IN, PunchType.OUT]:
+                return 0, 0, False
+
+            if punch_type == PunchType.IN:
+                if open_interval_start is not None:
                     return 0, 0, False
+                if last_out_at is not None:
+                    break_minutes += self.__diff_in_minutes(last_out_at, punch.punched_at)
                 open_interval_start = punch.punched_at
+                last_out_at = None
                 continue
 
-            if punch.punch_type == PunchType.BREAK_START:
-                if open_interval_start is None or open_break_start is not None:
+            if punch_type == PunchType.OUT:
+                if open_interval_start is None:
                     return 0, 0, False
                 worked_minutes += self.__diff_in_minutes(open_interval_start, punch.punched_at)
                 open_interval_start = None
-                open_break_start = punch.punched_at
-                continue
+                last_out_at = punch.punched_at
 
-            if punch.punch_type == PunchType.BREAK_END:
-                if open_break_start is None:
-                    return 0, 0, False
-                break_minutes += self.__diff_in_minutes(open_break_start, punch.punched_at)
-                open_break_start = None
-                open_interval_start = punch.punched_at
-                continue
-
-            if punch.punch_type == PunchType.OUT:
-                if open_interval_start is None or open_break_start is not None:
-                    return 0, 0, False
-                worked_minutes += self.__diff_in_minutes(open_interval_start, punch.punched_at)
-                open_interval_start = None
-
-        is_complete = open_interval_start is None and open_break_start is None
+        is_complete = open_interval_start is None
         return worked_minutes, break_minutes, is_complete
 
     def __diff_in_minutes(self, start: datetime, end: datetime) -> int:

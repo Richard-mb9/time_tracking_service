@@ -1,6 +1,6 @@
 from collections import defaultdict
 from datetime import date
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Set
 
 from application.dtos import RecalculateDailyAttendanceSummaryDTO
 from application.exceptions import BadRequestError
@@ -230,32 +230,38 @@ class ApplyTimeAdjustmentRequestUseCase:
             self.__validate_sequence(date_punches)
 
     def __validate_sequence(self, punches: List[TimePunch]) -> None:
-        ordered = sorted(punches, key=lambda punch: punch.punched_at)
-        inside_shift = False
-        in_break = False
-        return
+        priority = {
+            PunchType.IN: 0,
+            PunchType.OUT: 1,
+        }
+        ordered = sorted(
+            punches,
+            key=lambda punch: (
+                punch.punched_at,
+                priority[
+                    PunchType(punch.punch_type)
+                    if isinstance(punch.punch_type, str)
+                    else punch.punch_type
+                ],
+            ),
+        )
 
-        """ for punch in ordered:
-            if punch.punch_type == PunchType.IN:
+        inside_shift = False
+
+        for punch in ordered:
+            punch_type = (
+                PunchType(punch.punch_type)
+                if isinstance(punch.punch_type, str)
+                else punch.punch_type
+            )
+
+            if punch_type == PunchType.IN:
                 if inside_shift:
                     raise BadRequestError("Invalid resulting sequence for adjustment.")
                 inside_shift = True
-                in_break = False
                 continue
 
-            if punch.punch_type == PunchType.OUT:
-                if not inside_shift or in_break:
+            if punch_type == PunchType.OUT:
+                if not inside_shift:
                     raise BadRequestError("Invalid resulting sequence for adjustment.")
                 inside_shift = False
-                continue
-
-            if punch.punch_type == PunchType.BREAK_START:
-                if not inside_shift or in_break:
-                    raise BadRequestError("Invalid resulting sequence for adjustment.")
-                in_break = True
-                continue
-
-            if punch.punch_type == PunchType.BREAK_END:
-                if not inside_shift or not in_break:
-                    raise BadRequestError("Invalid resulting sequence for adjustment.")
-                in_break = False """

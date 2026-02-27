@@ -92,9 +92,7 @@ class CreateTimePunchUseCase:
 
         priority = {
             PunchType.IN: 0,
-            PunchType.BREAK_START: 1,
-            PunchType.BREAK_END: 2,
-            PunchType.OUT: 3,
+            PunchType.OUT: 1,
         }
 
         ordered = sorted(
@@ -106,35 +104,14 @@ class CreateTimePunchUseCase:
         )
 
         inside_shift = False
-        in_break = False
-
         for punch in ordered:
             if punch.punch_type == PunchType.IN:
                 if inside_shift:
                     raise BadRequestError("Invalid sequence: IN cannot happen twice in a row.")
                 inside_shift = True
-                in_break = False
                 continue
 
             if punch.punch_type == PunchType.OUT:
                 if not inside_shift:
                     raise BadRequestError("Invalid sequence: OUT requires an open shift.")
-                if in_break:
-                    raise BadRequestError("Invalid sequence: OUT is not allowed while break is open.")
                 inside_shift = False
-                continue
-
-            if punch.punch_type == PunchType.BREAK_START:
-                if not inside_shift:
-                    raise BadRequestError("Invalid sequence: BREAK_START requires IN before it.")
-                if in_break:
-                    raise BadRequestError("Invalid sequence: BREAK_START already opened.")
-                in_break = True
-                continue
-
-            if punch.punch_type == PunchType.BREAK_END:
-                if not inside_shift:
-                    raise BadRequestError("Invalid sequence: BREAK_END requires IN before it.")
-                if not in_break:
-                    raise BadRequestError("Invalid sequence: BREAK_END requires BREAK_START.")
-                in_break = False

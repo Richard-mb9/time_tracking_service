@@ -15,9 +15,12 @@ Observacoes de tenant:
 
 Regras gerais:
 - `name` e obrigatorio e unico por tenant.
+- `workDayPolicies` define a jornada por dia da semana.
+- Cada dia da semana pode aparecer apenas uma vez em `workDayPolicies`.
 - `dailyWorkMinutes` deve ser inteiro maior que zero.
 - `breakMinutes` deve ser inteiro maior ou igual a zero.
 - `breakMinutes` nao pode ser maior que `dailyWorkMinutes`.
+- E obrigatorio informar pelo menos um item em `workDayPolicies`.
 
 ---
 
@@ -32,16 +35,33 @@ Request body:
 |---|---|---|---|
 | `tenantId` | `int` | Sim | Tenant dono do template |
 | `name` | `string` | Sim | Nome amigavel do template |
-| `dailyWorkMinutes` | `int` | Sim | Carga diaria esperada em minutos |
-| `breakMinutes` | `int` | Sim | Intervalo padrao em minutos |
+| `workDayPolicies` | `array` | Sim | Lista de jornadas por dia da semana |
+
+Campos de `workDayPolicies[]`:
+
+| Campo | Tipo | Obrigatorio | Descricao |
+|---|---|---|---|
+| `weekDay` | `string` enum | Sim | `MONDAY`, `TUESDAY`, `WEDNESDAY`, `THURSDAY`, `FRIDAY`, `SATURDAY`, `SUNDAY` |
+| `dailyWorkMinutes` | `int` | Sim | Carga esperada para o dia em minutos |
+| `breakMinutes` | `int` | Sim | Intervalo padrao para o dia em minutos |
 
 Exemplo request:
 ```json
 {
   "tenantId": 10,
-  "name": "Jornada 8h",
-  "dailyWorkMinutes": 480,
-  "breakMinutes": 60
+  "name": "Jornada Hibrida",
+  "workDayPolicies": [
+    {
+      "weekDay": "MONDAY",
+      "dailyWorkMinutes": 480,
+      "breakMinutes": 60
+    },
+    {
+      "weekDay": "TUESDAY",
+      "dailyWorkMinutes": 300,
+      "breakMinutes": 30
+    }
+  ]
 }
 ```
 
@@ -80,9 +100,21 @@ Response:
 {
   "id": 80,
   "tenantId": 10,
-  "name": "Jornada 8h",
-  "dailyWorkMinutes": 480,
-  "breakMinutes": 60
+  "name": "Jornada Hibrida",
+  "workDayPolicies": [
+    {
+      "id": 301,
+      "weekDay": "MONDAY",
+      "dailyWorkMinutes": 480,
+      "breakMinutes": 60
+    },
+    {
+      "id": 302,
+      "weekDay": "TUESDAY",
+      "dailyWorkMinutes": 300,
+      "breakMinutes": 30
+    }
+  ]
 }
 ```
 
@@ -115,9 +147,21 @@ Response:
     {
       "id": 80,
       "tenantId": 10,
-      "name": "Jornada 8h",
-      "dailyWorkMinutes": 480,
-      "breakMinutes": 60
+      "name": "Jornada Hibrida",
+      "workDayPolicies": [
+        {
+          "id": 301,
+          "weekDay": "MONDAY",
+          "dailyWorkMinutes": 480,
+          "breakMinutes": 60
+        },
+        {
+          "id": 302,
+          "weekDay": "TUESDAY",
+          "dailyWorkMinutes": 300,
+          "breakMinutes": 30
+        }
+      ]
     }
   ],
   "count": 1,
@@ -143,8 +187,7 @@ Request body:
 | Campo | Tipo | Obrigatorio | Descricao |
 |---|---|---|---|
 | `name` | `string` | Nao | Novo nome |
-| `dailyWorkMinutes` | `int` | Nao | Nova carga diaria |
-| `breakMinutes` | `int` | Nao | Novo intervalo |
+| `workDayPolicies` | `array` | Nao | Nova lista completa de jornada por dia da semana (substitui a lista atual) |
 
 Response:
 - `200 OK`
@@ -153,9 +196,21 @@ Response:
 {
   "id": 80,
   "tenantId": 10,
-  "name": "Jornada 8h",
-  "dailyWorkMinutes": 480,
-  "breakMinutes": 60
+  "name": "Jornada Hibrida",
+  "workDayPolicies": [
+    {
+      "id": 301,
+      "weekDay": "MONDAY",
+      "dailyWorkMinutes": 480,
+      "breakMinutes": 60
+    },
+    {
+      "id": 302,
+      "weekDay": "TUESDAY",
+      "dailyWorkMinutes": 300,
+      "breakMinutes": 30
+    }
+  ]
 }
 ```
 

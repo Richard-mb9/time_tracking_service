@@ -14,13 +14,12 @@ Observacoes de tenant:
 
 Regras gerais:
 - Batida e vinculada a `employeeId` + `matricula`.
-- Tipos validos: `IN`, `OUT`, `BREAK_START`, `BREAK_END`.
+- Tipos validos: `IN`, `OUT`.
 - Nao permite duplicidade exata (`employeeId + matricula + punchedAt + punchType`).
 - Valida sequencia de eventos para evitar conflitos:
   - `IN` nao pode repetir sem `OUT`.
-  - `OUT` exige jornada aberta e sem intervalo aberto.
-  - `BREAK_START` exige jornada aberta e sem intervalo aberto.
-  - `BREAK_END` exige intervalo aberto.
+  - `OUT` exige jornada aberta.
+- Intervalos passam a ser representados por pares `OUT` (saida) e `IN` (retorno).
 - Se `allowMultiEnrollmentPerDay=false`, bloqueia batidas em outra matricula do mesmo funcionario no mesmo dia.
 - Ao criar/remover batida, o sistema reapura resumo diario automaticamente.
 
@@ -39,7 +38,7 @@ Request body:
 | `employeeId` | `int` | Sim | ID do funcionario |
 | `matricula` | `string` | Sim | Matricula do funcionario |
 | `punchedAt` | `datetime` ISO-8601 | Sim | Data/hora da batida |
-| `punchType` | `string` enum | Sim | `IN`, `OUT`, `BREAK_START`, `BREAK_END` |
+| `punchType` | `string` enum | Sim | `IN`, `OUT` |
 | `source` | `string` | Nao (default `web`) | Origem da batida |
 | `note` | `string` | Nao | Observacao livre |
 | `allowMultiEnrollmentPerDay` | `bool` | Nao (default `true`) | Permite batidas em outras matriculas no mesmo dia |
@@ -123,7 +122,7 @@ Query params:
 | `matricula` | `string` | Nao | - | Filtro por matricula |
 | `startAt` | `datetime` | Nao | - | Inicio do intervalo |
 | `endAt` | `datetime` | Nao | - | Fim do intervalo |
-| `punchType` | `string` enum | Nao | - | `IN`, `OUT`, `BREAK_START`, `BREAK_END` |
+| `punchType` | `string` enum | Nao | - | `IN`, `OUT` |
 | `tenantId` | `int` | Nao | - | Tenant opcional para usuario tenant sistema |
 
 Regras de filtro:

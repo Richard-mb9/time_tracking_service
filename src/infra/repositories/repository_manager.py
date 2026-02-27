@@ -5,8 +5,14 @@ from application.repositories.bank_hours_ledger_repository_interface import (
 from application.repositories.daily_attendance_summary_repository_interface import (
     DailyAttendanceSummaryRepositoryInterface,
 )
+from application.repositories.employee_holiday_calendar_assignment_repository_interface import (
+    EmployeeHolidayCalendarAssignmentRepositoryInterface,
+)
 from application.repositories.enrollment_policy_assignment_repository_interface import (
     EnrollmentPolicyAssignmentRepositoryInterface,
+)
+from application.repositories.holiday_calendar_repository_interface import (
+    HolidayCalendarRepositoryInterface,
 )
 from application.repositories.time_adjustment_item_repository_interface import (
     TimeAdjustmentItemRepositoryInterface,
@@ -24,7 +30,11 @@ from infra.database_manager import DatabaseManagerConnection
 
 from .bank_hours_ledger_repository import BankHoursLedgerRepository
 from .daily_attendance_summary_repository import DailyAttendanceSummaryRepository
+from .employee_holiday_calendar_assignment_repository import (
+    EmployeeHolidayCalendarAssignmentRepository,
+)
 from .enrollment_policy_assignment_repository import EnrollmentPolicyAssignmentRepository
+from .holiday_calendar_repository import HolidayCalendarRepository
 from .time_adjustment_item_repository import TimeAdjustmentItemRepository
 from .time_adjustment_request_repository import TimeAdjustmentRequestRepository
 from .time_punch_repository import TimePunchRepository
@@ -59,3 +69,11 @@ class RepositoryManager(RepositoryManagerInterface):
 
     def bank_hours_ledger_repository(self) -> BankHoursLedgerRepositoryInterface:
         return BankHoursLedgerRepository(self.db_manager)
+
+    def holiday_calendar_repository(self) -> HolidayCalendarRepositoryInterface:
+        return HolidayCalendarRepository(self.db_manager)
+
+    def employee_holiday_calendar_assignment_repository(
+        self,
+    ) -> EmployeeHolidayCalendarAssignmentRepositoryInterface:
+        return EmployeeHolidayCalendarAssignmentRepository(self.db_manager)

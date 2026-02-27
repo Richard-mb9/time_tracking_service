@@ -1,9 +1,10 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import List, Optional
+
+from .work_day_policy_dto import WorkDayPolicyDTO
 
 
 @dataclass
 class UpdateWorkPolicyTemplateDTO:
     name: Optional[str] = None
-    daily_work_minutes: Optional[int] = None
-    break_minutes: Optional[int] = None
+    work_day_policies: Optional[List[WorkDayPolicyDTO]] = None

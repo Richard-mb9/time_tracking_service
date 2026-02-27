@@ -1,7 +1,11 @@
 # pyright: reportUnusedImport=false
 from .bank_hours_ledger_repository import BankHoursLedgerRepository
 from .daily_attendance_summary_repository import DailyAttendanceSummaryRepository
+from .employee_holiday_calendar_assignment_repository import (
+    EmployeeHolidayCalendarAssignmentRepository,
+)
 from .enrollment_policy_assignment_repository import EnrollmentPolicyAssignmentRepository
+from .holiday_calendar_repository import HolidayCalendarRepository
 from .repository_manager import RepositoryManager
 from .time_adjustment_item_repository import TimeAdjustmentItemRepository
 from .time_adjustment_request_repository import TimeAdjustmentRequestRepository

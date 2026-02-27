@@ -4,8 +4,6 @@ from enum import Enum
 class PunchTypeRequestEnum(str, Enum):
     IN = "IN"
     OUT = "OUT"
-    BREAK_START = "BREAK_START"
-    BREAK_END = "BREAK_END"
 
 
 class TimeAdjustmentTypeRequestEnum(str, Enum):
@@ -38,3 +36,43 @@ class BankHoursSourceRequestEnum(str, Enum):
     DAILY_APURATION = "DAILY_APURATION"
     MANUAL_ADJUST = "MANUAL_ADJUST"
     ADJUSTMENT_REQUEST = "ADJUSTMENT_REQUEST"
+
+
+class WorkWeekDayRequestEnum(str, Enum):
+    MONDAY = "MONDAY"
+    TUESDAY = "TUESDAY"
+    WEDNESDAY = "WEDNESDAY"
+    THURSDAY = "THURSDAY"
+    FRIDAY = "FRIDAY"
+    SATURDAY = "SATURDAY"
+    SUNDAY = "SUNDAY"
+
+
+class UfRequestEnum(str, Enum):
+    AC = "AC"
+    AL = "AL"
+    AP = "AP"
+    AM = "AM"
+    BA = "BA"
+    CE = "CE"
+    DF = "DF"
+    ES = "ES"
+    GO = "GO"
+    MA = "MA"
+    MT = "MT"
+    MS = "MS"
+    MG = "MG"
+    PA = "PA"
+    PB = "PB"
+    PR = "PR"
+    PE = "PE"
+    PI = "PI"
+    RJ = "RJ"
+    RN = "RN"
+    RS = "RS"
+    RO = "RO"
+    RR = "RR"
+    SC = "SC"
+    SP = "SP"
+    SE = "SE"
+    TO = "TO"

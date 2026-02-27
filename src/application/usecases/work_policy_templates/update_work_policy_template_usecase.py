@@ -1,9 +1,9 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 
-from application.dtos import UpdateWorkPolicyTemplateDTO
+from application.dtos import UpdateWorkPolicyTemplateDTO, WorkDayPolicyDTO
 from application.exceptions import BadRequestError, ConflictError
 from application.repositories import RepositoryManagerInterface
-from domain import WorkPolicyTemplate
+from domain import WorkDayPolicy, WorkPolicyTemplate
 
 from .find_work_policy_template_by_id_usecase import FindWorkPolicyTemplateByIdUseCase
 
@@ -39,29 +39,17 @@ class UpdateWorkPolicyTemplateUseCase:
                 raise ConflictError("Template name already exists for this tenant.")
             data_to_update["name"] = name
 
-        daily_work_minutes = (
-            data.daily_work_minutes
-            if data.daily_work_minutes is not None
-            else template.daily_work_minutes
-        )
-        break_minutes = (
-            data.break_minutes if data.break_minutes is not None else template.break_minutes
-        )
-
-        if daily_work_minutes <= 0:
-            raise BadRequestError("daily_work_minutes must be greater than zero.")
-
-        if break_minutes < 0:
-            raise BadRequestError("break_minutes must be greater than or equal to zero.")
-
-        if break_minutes > daily_work_minutes:
-            raise BadRequestError("break_minutes must be less than daily_work_minutes.")
-
-        if data.daily_work_minutes is not None:
-            data_to_update["daily_work_minutes"] = data.daily_work_minutes
-
-        if data.break_minutes is not None:
-            data_to_update["break_minutes"] = data.break_minutes
+        if data.work_day_policies is not None:
+            self.__validate_work_day_policies(data.work_day_policies)
+            data_to_update["work_day_policies"] = [
+                WorkDayPolicy(
+                    work_policy_template_id=template.id,
+                    daily_work_minutes=policy.daily_work_minutes,
+                    break_minutes=policy.break_minutes,
+                    week_day=policy.week_day,
+                )
+                for policy in data.work_day_policies
+            ]
 
         if len(data_to_update) == 0:
             return template
@@ -70,3 +58,23 @@ class UpdateWorkPolicyTemplateUseCase:
         if updated is None:
             raise BadRequestError("Unable to update template.")
         return updated
+
+    def __validate_work_day_policies(self, work_day_policies: List[WorkDayPolicyDTO]) -> None:
+        if len(work_day_policies) == 0:
+            raise BadRequestError("At least one work day policy is required.")
+
+        used_week_days = set()
+        for policy in work_day_policies:
+            if policy.week_day in used_week_days:
+                raise BadRequestError("Duplicated week_day in work_day_policies.")
+
+            if policy.daily_work_minutes <= 0:
+                raise BadRequestError("daily_work_minutes must be greater than zero.")
+
+            if policy.break_minutes < 0:
+                raise BadRequestError("break_minutes must be greater than or equal to zero.")
+
+            if policy.break_minutes > policy.daily_work_minutes:
+                raise BadRequestError("break_minutes must be less than daily_work_minutes.")
+
+            used_week_days.add(policy.week_day)

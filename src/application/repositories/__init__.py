@@ -3,9 +3,13 @@ from .bank_hours_ledger_repository_interface import BankHoursLedgerRepositoryInt
 from .daily_attendance_summary_repository_interface import (
     DailyAttendanceSummaryRepositoryInterface,
 )
+from .employee_holiday_calendar_assignment_repository_interface import (
+    EmployeeHolidayCalendarAssignmentRepositoryInterface,
+)
 from .enrollment_policy_assignment_repository_interface import (
     EnrollmentPolicyAssignmentRepositoryInterface,
 )
+from .holiday_calendar_repository_interface import HolidayCalendarRepositoryInterface
 from .repository_manager_interface import RepositoryManagerInterface
 from .time_adjustment_item_repository_interface import TimeAdjustmentItemRepositoryInterface
 from .time_adjustment_request_repository_interface import (
