@@ -22,6 +22,7 @@ class TimeAdjustmentStatus(str, Enum):
 
 class DailyAttendanceStatus(str, Enum):
     OK = "OK"
+    ABSENT = "ABSENT"
     INCOMPLETE = "INCOMPLETE"
     PENDING_ADJUSTMENT = "PENDING_ADJUSTMENT"
     NO_POLICY = "NO_POLICY"

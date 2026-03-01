@@ -20,12 +20,13 @@ Regras gerais:
   - jornada esperada para o dia da semana (`workDayPolicies`),
   - calendario de feriados vinculado ao funcionario,
   - pendencias de ajuste.
-- Status possiveis: `OK`, `INCOMPLETE`, `PENDING_ADJUSTMENT`, `NO_POLICY`.
-- Quando status `OK`, o sistema pode gerar/atualizar lancamento automatico de banco de horas (`DAILY_APURATION`).
+- Status possiveis: `OK`, `ABSENT`, `INCOMPLETE`, `PENDING_ADJUSTMENT`, `NO_POLICY`.
+- Quando status `OK` ou `ABSENT`, o sistema pode gerar/atualizar lancamento automatico de banco de horas (`DAILY_APURATION`).
 - Se nao existir jornada configurada no dia da semana, `expectedMinutes` sera `0`.
 - Se a data for feriado no calendario vinculado ao funcionario, `expectedMinutes` sera `0`.
 - Se `expectedMinutes` for `0` e houver trabalho no dia, o saldo vira banco de horas positivo.
 - Se `expectedMinutes` for `0` e nao houver batidas, o status final pode ser `OK` (dia sem obrigacao de jornada).
+- Se `expectedMinutes` for maior que `0` e nao houver batidas, o status final sera `ABSENT` e o sistema gera `deficitMinutes = expectedMinutes`.
 - `breakMinutes` passa a ser calculado como soma dos intervalos entre um `OUT` e o proximo `IN` no mesmo dia.
 
 ---
@@ -126,7 +127,7 @@ Query params:
 | `matricula` | `string` | Nao | - | Filtro por matricula |
 | `startDate` | `date` | Nao | - | Inicio por data de trabalho |
 | `endDate` | `date` | Nao | - | Fim por data de trabalho |
-| `status` | `string` enum | Nao | - | `OK`, `INCOMPLETE`, `PENDING_ADJUSTMENT`, `NO_POLICY` |
+| `status` | `string` enum | Nao | - | `OK`, `ABSENT`, `INCOMPLETE`, `PENDING_ADJUSTMENT`, `NO_POLICY` |
 | `tenantId` | `int` | Nao | - | Tenant opcional para usuario tenant sistema |
 
 Regras de filtro:

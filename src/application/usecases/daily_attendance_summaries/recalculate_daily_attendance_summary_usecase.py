@@ -30,8 +30,12 @@ class RecalculateDailyAttendanceSummaryUseCase:
         self.time_adjustment_request_repository = (
             repository_manager.time_adjustment_request_repository()
         )
-        self.bank_hours_ledger_repository = repository_manager.bank_hours_ledger_repository()
-        self.holiday_calendar_repository = repository_manager.holiday_calendar_repository()
+        self.bank_hours_ledger_repository = (
+            repository_manager.bank_hours_ledger_repository()
+        )
+        self.holiday_calendar_repository = (
+            repository_manager.holiday_calendar_repository()
+        )
         self.employee_holiday_calendar_assignment_repository = (
             repository_manager.employee_holiday_calendar_assignment_repository()
         )
@@ -39,7 +43,9 @@ class RecalculateDailyAttendanceSummaryUseCase:
             FindCurrentPolicyAssignmentByEnrollmentAndDateUseCase(repository_manager)
         )
 
-    def execute(self, data: RecalculateDailyAttendanceSummaryDTO) -> DailyAttendanceSummary:
+    def execute(
+        self, data: RecalculateDailyAttendanceSummaryDTO
+    ) -> DailyAttendanceSummary:
         assignment = self.find_assignment_by_date.execute(
             employee_id=data.employee_id,
             matricula=data.matricula,
@@ -82,7 +88,7 @@ class RecalculateDailyAttendanceSummaryUseCase:
 
         overtime_minutes = 0
         deficit_minutes = 0
-        if status == DailyAttendanceStatus.OK:
+        if status in [DailyAttendanceStatus.OK, DailyAttendanceStatus.ABSENT]:
             if worked_minutes > expected_minutes:
                 overtime_minutes = worked_minutes - expected_minutes
             elif worked_minutes < expected_minutes:
@@ -111,7 +117,10 @@ class RecalculateDailyAttendanceSummaryUseCase:
         )
 
         daily_delta = overtime_minutes - deficit_minutes
-        if status == DailyAttendanceStatus.OK and daily_delta != 0:
+        if (
+            status in [DailyAttendanceStatus.OK, DailyAttendanceStatus.ABSENT]
+            and daily_delta != 0
+        ):
             self.bank_hours_ledger_repository.create(
                 BankHoursLedger(
                     tenant_id=data.tenant_id,
@@ -155,6 +164,8 @@ class RecalculateDailyAttendanceSummaryUseCase:
             return DailyAttendanceStatus.PENDING_ADJUSTMENT
         if punches_count == 0 and expected_minutes == 0:
             return DailyAttendanceStatus.OK
+        if punches_count == 0 and expected_minutes > 0:
+            return DailyAttendanceStatus.ABSENT
         if punches_count == 0:
             return DailyAttendanceStatus.INCOMPLETE
         if not is_complete:
@@ -192,12 +203,10 @@ class RecalculateDailyAttendanceSummaryUseCase:
     def __is_holiday_for_employee(
         self, tenant_id: int, employee_id: int, matricula: str, work_date: date
     ) -> bool:
-        employee_calendar_assignment = (
-            self.employee_holiday_calendar_assignment_repository.find_by_employee_id_and_matricula_and_tenant_id(
-                employee_id=employee_id,
-                matricula=matricula,
-                tenant_id=tenant_id,
-            )
+        employee_calendar_assignment = self.employee_holiday_calendar_assignment_repository.find_by_employee_id_and_matricula_and_tenant_id(
+            employee_id=employee_id,
+            matricula=matricula,
+            tenant_id=tenant_id,
         )
         if employee_calendar_assignment is None:
             return False
@@ -230,7 +239,9 @@ class RecalculateDailyAttendanceSummaryUseCase:
                 if open_interval_start is not None:
                     return 0, 0, False
                 if last_out_at is not None:
-                    break_minutes += self.__diff_in_minutes(last_out_at, punch.punched_at)
+                    break_minutes += self.__diff_in_minutes(
+                        last_out_at, punch.punched_at
+                    )
                 open_interval_start = punch.punched_at
                 last_out_at = None
                 continue
@@ -238,7 +249,9 @@ class RecalculateDailyAttendanceSummaryUseCase:
             if punch_type == PunchType.OUT:
                 if open_interval_start is None:
                     return 0, 0, False
-                worked_minutes += self.__diff_in_minutes(open_interval_start, punch.punched_at)
+                worked_minutes += self.__diff_in_minutes(
+                    open_interval_start, punch.punched_at
+                )
                 open_interval_start = None
                 last_out_at = punch.punched_at
 
